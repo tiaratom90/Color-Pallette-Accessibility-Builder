@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import ColorInput from '@/components/ColorInput';
 import Results from '@/components/Results';
@@ -15,15 +16,17 @@ interface ColorResult {
   };
 }
 
+interface SummaryType {
+  aaa: number;
+  aa: number;
+  aaLarge: number;
+  total: number;
+}
+
 const Index = () => {
   const [colors, setColors] = useState<string[]>(Array(6).fill(''));
   const [results, setResults] = useState<Record<string, Record<string, ColorResult>>>({});
-  const [summary, setSummary<{
-    aaa: number;
-    aa: number;
-    aaLarge: number;
-    total: number;
-  } | null> | null>(null);
+  const [summary, setSummary] = useState<SummaryType | null>(null);
   
   const { toast } = useToast();
 
@@ -104,7 +107,6 @@ const Index = () => {
     toast({
       title: "Analysis Complete",
       description: "Color contrast analysis has been updated.",
-      icon: <Check className="h-4 w-4" />,
     });
   };
 
