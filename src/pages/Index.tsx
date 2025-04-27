@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import ColorInput from '@/components/ColorInput';
 import Results from '@/components/Results';
