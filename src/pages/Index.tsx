@@ -18,12 +18,12 @@ interface ColorResult {
 const Index = () => {
   const [colors, setColors] = useState<string[]>(Array(6).fill(''));
   const [results, setResults] = useState<Record<string, Record<string, ColorResult>>>({});
-  const [summary, setSummary] = useState<{
+  const [summary, setSummary<{
     aaa: number;
     aa: number;
     aaLarge: number;
     total: number;
-  } | null>(null);
+  } | null> | null>(null);
   
   const { toast } = useToast();
 

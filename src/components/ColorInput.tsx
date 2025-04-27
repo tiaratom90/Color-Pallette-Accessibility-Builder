@@ -38,12 +38,14 @@ const ColorInput = ({ value, onChange, index }: ColorInputProps) => {
           className="font-mono"
           maxLength={7}
         />
-        <Input
-          type="color"
-          value={value || "#ffffff"}
-          onChange={handleColorChange}
-          className="w-12 h-10 p-1 cursor-pointer"
-        />
+        <div className="relative">
+          <Input
+            type="color"
+            value={value || "#ffffff"}
+            onChange={handleColorChange}
+            className="h-10 w-10 cursor-pointer rounded-full border-2 border-gray-200 p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch-wrapper]:rounded-full [&::-webkit-color-swatch-wrapper]:p-0"
+          />
+        </div>
       </div>
     </div>
   );
