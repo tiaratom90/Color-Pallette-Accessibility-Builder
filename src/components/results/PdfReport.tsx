@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { FileDown } from "lucide-react";
+import { FileDown, Printer } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
@@ -239,16 +239,55 @@ const PdfReport = () => {
     }
   };
 
+  const printPage = () => {
+    try {
+      // Add a class to the body to apply print-specific styles
+      document.body.classList.add('is-printing');
+      
+      // Use the browser's built-in print functionality
+      window.print();
+      
+      // Remove the class after printing dialog is closed
+      setTimeout(() => {
+        document.body.classList.remove('is-printing');
+      }, 1000);
+      
+      toast({
+        title: "Print Dialog Opened",
+        description: "Use your browser's print dialog to print the current page.",
+      });
+    } catch (error) {
+      console.error("Error opening print dialog:", error);
+      toast({
+        title: "Error Opening Print Dialog",
+        description: "There was a problem opening the print dialog. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
-    <Button 
-      variant="outline" 
-      size="sm" 
-      onClick={downloadPdfReport}
-      className="flex items-center gap-2"
-    >
-      <FileDown className="h-4 w-4" />
-      Download PDF Report
-    </Button>
+    <div className="flex flex-wrap gap-2">
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={downloadPdfReport}
+        className="flex items-center gap-2"
+      >
+        <FileDown className="h-4 w-4" />
+        Download PDF Report
+      </Button>
+      
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={printPage}
+        className="flex items-center gap-2"
+      >
+        <Printer className="h-4 w-4" />
+        Print Page
+      </Button>
+    </div>
   );
 };
 

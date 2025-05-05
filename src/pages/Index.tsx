@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
@@ -96,13 +95,53 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+      {/* Print-specific styles */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          body {
+            background-color: white !important;
+            color: black !important;
+          }
+          .is-printing .max-w-7xl {
+            max-width: 100% !important;
+          }
+          .is-printing button,
+          .is-printing [role="tablist"],
+          .no-print {
+            display: none !important;
+          }
+          .is-printing [role="tabpanel"]:not([data-state="active"]) {
+            display: block !important;
+            margin-top: 2rem;
+            page-break-before: always;
+          }
+          .is-printing * {
+            color: black !important;
+            background-color: white !important;
+          }
+          .is-printing .card,
+          .is-printing [class*="border"] {
+            border: 1px solid #ddd !important;
+          }
+          .is-printing h2 {
+            font-size: 1.5rem !important;
+            margin-bottom: 1rem !important;
+          }
+          .is-printing .dark\\:bg-gray-800,
+          .is-printing .dark\\:bg-gray-900,
+          .is-printing .bg-gray-50 {
+            background-color: white !important;
+          }
+        }
+      `}} />
+      
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end mb-4 no-print">
           <ThemeToggle />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Input Panel */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 no-print">
             <Card className="p-6 dark:bg-gray-800">
               <h1 className="text-2xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
                 Color Scheme Accessibility Checker
