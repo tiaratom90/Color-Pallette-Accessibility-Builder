@@ -45,7 +45,8 @@ const PdfReport = () => {
         currentY += 10;
         
         try {
-          const canvas = await html2canvas(currentActivePanel, {
+          // Cast the Element to HTMLElement
+          const canvas = await html2canvas(currentActivePanel as HTMLElement, {
             scale: 1.5,
             logging: false,
             useCORS: true,
@@ -109,7 +110,7 @@ const PdfReport = () => {
         // Find the now visible tab panel with more robust selector
         const tabPanel = document.querySelector(
           `[role="tabpanel"][data-state="active"], [data-radix-tabs-panel][data-state="active"]`
-        ) as HTMLElement;
+        );
         
         if (!tabPanel) {
           console.warn(`Tab panel for ${tabId} not found after click, skipping`);
@@ -175,7 +176,7 @@ const PdfReport = () => {
             }
           } else {
             // Fallback to capturing the entire panel if no sections found
-            const canvas = await html2canvas(tabPanel, {
+            const canvas = await html2canvas(tabPanel as HTMLElement, {
               scale: 1.5,
               logging: false,
               useCORS: true,
