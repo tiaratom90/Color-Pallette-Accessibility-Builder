@@ -4,11 +4,13 @@ import { Label } from "@/components/ui/label";
 
 interface ColorInputProps {
   value: string;
+  name: string;
   onChange: (value: string) => void;
+  onNameChange: (value: string) => void;
   index: number;
 }
 
-const ColorInput = ({ value, onChange, index }: ColorInputProps) => {
+const ColorInput = ({ value, name, onChange, onNameChange, index }: ColorInputProps) => {
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value.toUpperCase();
     if (val && !val.startsWith('#')) {
@@ -23,29 +25,43 @@ const ColorInput = ({ value, onChange, index }: ColorInputProps) => {
     onChange(e.target.value.toUpperCase());
   };
 
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onNameChange(e.target.value);
+  };
+
   return (
-    <div className="flex items-center gap-4">
-      <Label htmlFor={`color-${index}`} className="w-20">
-        Color {index + 1}
-      </Label>
-      <div className="flex-1 flex items-center gap-2">
-        <Input
-          id={`color-${index}`}
-          type="text"
-          value={value}
-          onChange={handleTextChange}
-          placeholder="#FFFFFF"
-          className="font-mono"
-          maxLength={7}
-        />
-        <div className="relative">
+    <div className="space-y-2">
+      <div className="flex items-center gap-4">
+        <Label htmlFor={`color-${index}`} className="w-20">
+          Color {index + 1}
+        </Label>
+        <div className="flex-1 flex items-center gap-2">
           <Input
-            type="color"
-            value={value || "#ffffff"}
-            onChange={handleColorChange}
-            className="h-10 w-10 cursor-pointer rounded-full border-2 border-gray-200 p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch-wrapper]:rounded-full [&::-webkit-color-swatch-wrapper]:p-0"
+            id={`color-${index}`}
+            type="text"
+            value={value}
+            onChange={handleTextChange}
+            placeholder="#FFFFFF"
+            className="font-mono"
+            maxLength={7}
           />
+          <div className="relative">
+            <Input
+              type="color"
+              value={value || "#ffffff"}
+              onChange={handleColorChange}
+              className="h-10 w-10 cursor-pointer rounded-full border-2 border-gray-200 p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch-wrapper]:rounded-full [&::-webkit-color-swatch-wrapper]:p-0"
+            />
+          </div>
         </div>
+      </div>
+      <div className="flex items-center gap-4 pl-24">
+        <Input
+          placeholder="Enter color name (optional)"
+          value={name}
+          onChange={handleNameChange}
+          className="text-sm"
+        />
       </div>
     </div>
   );

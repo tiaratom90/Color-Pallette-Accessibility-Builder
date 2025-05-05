@@ -9,17 +9,15 @@ interface BlackWhiteToggleProps {
 
 const BlackWhiteToggle = ({ includeBW, onChange }: BlackWhiteToggleProps) => {
   return (
-    <div className="mt-4">
-      <div className="flex items-center space-x-2">
-        <Switch 
-          id="include-bw" 
-          checked={includeBW} 
-          onCheckedChange={onChange} 
-        />
-        <Label htmlFor="include-bw" className="text-sm font-medium">
-          Include Black & White
-        </Label>
-      </div>
+    <div className="rounded-md border px-3 py-2 inline-flex items-center space-x-2 bg-white dark:bg-gray-800 dark:border-gray-700">
+      <Switch 
+        id="include-bw" 
+        checked={includeBW} 
+        onCheckedChange={onChange} 
+      />
+      <Label htmlFor="include-bw" className="text-sm font-medium cursor-pointer">
+        Include Black & White
+      </Label>
     </div>
   );
 };
