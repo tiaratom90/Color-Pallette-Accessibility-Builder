@@ -2,7 +2,10 @@
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Accessibility, Palette } from "lucide-react";
+import { Eye, Palette, FileDown, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
 interface Level {
   aaa: boolean;
@@ -52,36 +55,136 @@ const Results = ({ results }: ResultsProps) => {
     });
   });
 
+  const downloadReport = () => {
+    // Generate report content
+    let content = "# Color Contrast Accessibility Report\n\n";
+    content += "Generated on: " + new Date().toLocaleString() + "\n\n";
+    
+    // Add legends
+    content += "## WCAG 2.1 Contrast Requirements\n";
+    content += "- AAA: Contrast ratio of at least 7:1 for normal text and 4.5:1 for large text\n";
+    content += "- AA: Contrast ratio of at least 4.5:1 for normal text and 3:1 for large text\n";
+    content += "- AA Large: Contrast ratio of at least 3:1 for large text (18pt+ or 14pt+ bold)\n\n";
+    
+    // AAA section
+    if (accessibilityGroups.aaa.length > 0) {
+      content += "## Passing AAA Level (" + accessibilityGroups.aaa.length + ")\n";
+      accessibilityGroups.aaa.forEach(({ color1, color2, result }) => {
+        content += `- ${color1} + ${color2}: ${result.ratio}:1\n`;
+      });
+      content += "\n";
+    }
+    
+    // AA section
+    if (accessibilityGroups.aa.length > 0) {
+      content += "## Passing AA Level (" + accessibilityGroups.aa.length + ")\n";
+      accessibilityGroups.aa.forEach(({ color1, color2, result }) => {
+        content += `- ${color1} + ${color2}: ${result.ratio}:1\n`;
+      });
+      content += "\n";
+    }
+    
+    // AA Large section
+    if (accessibilityGroups.aaLarge.length > 0) {
+      content += "## Passing AA Large Only (" + accessibilityGroups.aaLarge.length + ")\n";
+      accessibilityGroups.aaLarge.forEach(({ color1, color2, result }) => {
+        content += `- ${color1} + ${color2}: ${result.ratio}:1\n`;
+      });
+      content += "\n";
+    }
+    
+    // Failed section
+    if (accessibilityGroups.failed.length > 0) {
+      content += "## Failed All Levels (" + accessibilityGroups.failed.length + ")\n";
+      accessibilityGroups.failed.forEach(({ color1, color2, result }) => {
+        content += `- ${color1} + ${color2}: ${result.ratio}:1\n`;
+      });
+    }
+    
+    // Create blob and download
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'contrast-accessibility-report.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const renderSwatch = (color1: string, color2: string, result: ColorResult) => (
     <div className="relative">
-      <div className="aspect-[0.7] rounded-lg overflow-hidden shadow-sm border border-gray-100">
-        <div className="h-2/3" style={{ backgroundColor: color1 }}>
-          <div className="h-full flex items-center justify-center font-serif text-2xl" style={{ color: color2 }}>
+      <div className="aspect-square h-24 rounded-md overflow-hidden shadow-sm border border-gray-100">
+        <div className="h-3/4" style={{ backgroundColor: color1 }}>
+          <div className="h-full flex items-center justify-center font-serif text-xl" style={{ color: color2 }}>
             Aa
           </div>
         </div>
-        <div className="h-1/3 bg-white p-1.5">
-          <div className="text-[10px] font-mono text-center text-gray-600 mb-1">{result.ratio}:1</div>
-          <div className="grid gap-[2px]">
+        <div className="h-1/4 bg-white p-1">
+          <div className="text-[8px] font-mono text-center text-gray-600">{result.ratio}:1</div>
+          <div className="flex justify-between gap-0.5 px-0.5">
             <div className={cn(
-              "text-center py-[1px] rounded text-[8px] leading-tight",
+              "flex-1 text-center rounded text-[6px] leading-tight",
               result.level.aaa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             )}>
-              AAA {result.level.aaa ? "✓" : "✗"}
+              AAA
             </div>
             <div className={cn(
-              "text-center py-[1px] rounded text-[8px] leading-tight",
+              "flex-1 text-center rounded text-[6px] leading-tight",
               result.level.aa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             )}>
-              AA {result.level.aa ? "✓" : "✗"}
+              AA
             </div>
             <div className={cn(
-              "text-center py-[1px] rounded text-[8px] leading-tight",
+              "flex-1 text-center rounded text-[6px] leading-tight",
               result.level.aaLarge ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             )}>
-              AA Large {result.level.aaLarge ? "✓" : "✗"}
+              AAL
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const accessibilityLegend = (
+    <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-sm font-medium">WCAG 2.1 Contrast Requirements</h3>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline"
+            size="sm"
+            className="text-xs h-8"
+            onClick={downloadReport}
+          >
+            <FileDown className="h-3.5 w-3.5 mr-1" />
+            Download Report
+          </Button>
+          <a 
+            href="https://www.w3.org/TR/WCAG21/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-xs text-blue-600 hover:underline"
+          >
+            <ExternalLink className="h-3.5 w-3.5 mr-1" />
+            WCAG 2.1 Guidelines
+          </a>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-green-100 text-green-700 hover:bg-green-100">AAA</Badge>
+          <span>7:1+ (normal text), 4.5:1+ (large text)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-blue-100 text-blue-700 hover:bg-blue-100">AA</Badge>
+          <span>4.5:1+ (normal text), 3:1+ (large text)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">AA Large</Badge>
+          <span>3:1+ (18pt+ or 14pt+ bold text)</span>
         </div>
       </div>
     </div>
@@ -96,7 +199,7 @@ const Results = ({ results }: ResultsProps) => {
             <span>By Color</span>
           </TabsTrigger>
           <TabsTrigger value="by-accessibility" className="flex items-center gap-2">
-            <Accessibility className="h-4 w-4" />
+            <Eye className="h-4 w-4" />
             <span>By Accessibility</span>
           </TabsTrigger>
         </TabsList>
@@ -115,7 +218,7 @@ const Results = ({ results }: ResultsProps) => {
                   <span className="font-mono text-xs uppercase">{color1}</span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2 p-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2">
                 {Object.entries(combinations).map(([color2, result]) => (
                   <div key={color2}>
                     {renderSwatch(color1, color2, result)}
@@ -128,20 +231,29 @@ const Results = ({ results }: ResultsProps) => {
       </TabsContent>
 
       <TabsContent value="by-accessibility">
+        {accessibilityLegend}
+        
         <div className="space-y-6">
           {accessibilityGroups.aaa.length > 0 && (
             <div>
               <h3 className="text-lg font-medium mb-2 text-green-700 border-b pb-1">
                 Passing AAA Level ({accessibilityGroups.aaa.length})
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
                 {accessibilityGroups.aaa.map(({ color1, color2, result }, index) => (
-                  <div key={`aaa-${index}`} className="relative">
-                    <div className="text-xs font-mono mb-1 truncate">
-                      <span style={{ color: color1 }}>{color1}</span> + <span style={{ color: color2 }}>{color2}</span>
-                    </div>
-                    {renderSwatch(color1, color2, result)}
-                  </div>
+                  <TooltipProvider key={`aaa-${index}`}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="relative">
+                          {renderSwatch(color1, color2, result)}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs font-mono">
+                        <div>{color1} + {color2}</div>
+                        <div>Ratio: {result.ratio}:1</div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 ))}
               </div>
             </div>
@@ -152,14 +264,21 @@ const Results = ({ results }: ResultsProps) => {
               <h3 className="text-lg font-medium mb-2 text-blue-700 border-b pb-1">
                 Passing AA Level ({accessibilityGroups.aa.length})
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
                 {accessibilityGroups.aa.map(({ color1, color2, result }, index) => (
-                  <div key={`aa-${index}`} className="relative">
-                    <div className="text-xs font-mono mb-1 truncate">
-                      <span style={{ color: color1 }}>{color1}</span> + <span style={{ color: color2 }}>{color2}</span>
-                    </div>
-                    {renderSwatch(color1, color2, result)}
-                  </div>
+                  <TooltipProvider key={`aa-${index}`}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="relative">
+                          {renderSwatch(color1, color2, result)}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs font-mono">
+                        <div>{color1} + {color2}</div>
+                        <div>Ratio: {result.ratio}:1</div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 ))}
               </div>
             </div>
@@ -170,14 +289,21 @@ const Results = ({ results }: ResultsProps) => {
               <h3 className="text-lg font-medium mb-2 text-yellow-700 border-b pb-1">
                 Passing AA Large Only ({accessibilityGroups.aaLarge.length})
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
                 {accessibilityGroups.aaLarge.map(({ color1, color2, result }, index) => (
-                  <div key={`aaLarge-${index}`} className="relative">
-                    <div className="text-xs font-mono mb-1 truncate">
-                      <span style={{ color: color1 }}>{color1}</span> + <span style={{ color: color2 }}>{color2}</span>
-                    </div>
-                    {renderSwatch(color1, color2, result)}
-                  </div>
+                  <TooltipProvider key={`aaLarge-${index}`}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="relative">
+                          {renderSwatch(color1, color2, result)}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs font-mono">
+                        <div>{color1} + {color2}</div>
+                        <div>Ratio: {result.ratio}:1</div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 ))}
               </div>
             </div>
@@ -188,14 +314,21 @@ const Results = ({ results }: ResultsProps) => {
               <h3 className="text-lg font-medium mb-2 text-red-700 border-b pb-1">
                 Failed All Levels ({accessibilityGroups.failed.length})
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
                 {accessibilityGroups.failed.map(({ color1, color2, result }, index) => (
-                  <div key={`failed-${index}`} className="relative">
-                    <div className="text-xs font-mono mb-1 truncate">
-                      <span style={{ color: color1 }}>{color1}</span> + <span style={{ color: color2 }}>{color2}</span>
-                    </div>
-                    {renderSwatch(color1, color2, result)}
-                  </div>
+                  <TooltipProvider key={`failed-${index}`}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="relative">
+                          {renderSwatch(color1, color2, result)}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs font-mono">
+                        <div>{color1} + {color2}</div>
+                        <div>Ratio: {result.ratio}:1</div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 ))}
               </div>
             </div>
