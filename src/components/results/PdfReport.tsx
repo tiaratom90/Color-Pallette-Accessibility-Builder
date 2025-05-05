@@ -19,36 +19,106 @@ const PdfReport = () => {
       pdf.setFontSize(20);
       pdf.text("Color Contrast Accessibility Report", 14, 20);
       pdf.setFontSize(10);
-      pdf.text("Generated on: " + new Date().toLocaleString(), 14, 28);
+      const currentDate = new Date().toLocaleString();
+      pdf.text("Generated on: " + currentDate, 14, 28);
       
-      // Get both tabbed views as screenshots
-      const tabViews = document.querySelectorAll('[role="tabpanel"]:not([hidden])');
+      // Get the tabs container and tab buttons
+      const tabsContainer = document.querySelector('[role="tabslist"]')?.parentElement;
+      const tabButtons = document.querySelectorAll('[role="tab"]');
       
-      if (tabViews.length > 0) {
-        // Only capture the visible tab panel
-        const visibleTabPanel = tabViews[0] as HTMLElement;
-        const visibleCanvas = await html2canvas(visibleTabPanel, {
-          scale: 1.5,
+      if (!tabsContainer || tabButtons.length === 0) {
+        throw new Error("Tabs not found");
+      }
+      
+      // Store the original active tab to restore later
+      const originalActiveTab = document.querySelector('[role="tab"][data-state="active"]') as HTMLElement;
+      if (!originalActiveTab) {
+        throw new Error("No active tab found");
+      }
+      
+      // Process both tabs
+      let currentY = 35;
+      const tabIds = ["by-color", "by-accessibility"];
+      
+      for (const tabId of tabIds) {
+        // Find and click the tab button to make its content visible
+        const tabButton = Array.from(tabButtons).find(
+          tab => tab.getAttribute('value') === tabId
+        ) as HTMLElement;
+        
+        if (!tabButton) continue;
+        
+        // Activate this tab
+        tabButton.click();
+        
+        // Wait a moment for tab transition
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Find the now visible tab panel
+        const tabPanel = document.querySelector(
+          `[role="tabpanel"][data-state="active"][data-orientation="horizontal"]`
+        ) as HTMLElement;
+        
+        if (!tabPanel) continue;
+        
+        // Add the tab name as a section heading
+        pdf.setFontSize(16);
+        const tabName = tabButton.textContent || (tabId === "by-color" ? "By Color" : "By Accessibility");
+        pdf.text(tabName, 14, currentY);
+        currentY += 10;
+        
+        // Temporarily adjust the panel for better capture
+        const originalStyle = tabPanel.style.cssText;
+        tabPanel.style.maxHeight = "none";
+        tabPanel.style.overflow = "visible";
+        
+        // Capture the tab content
+        const canvas = await html2canvas(tabPanel, {
+          scale: 2,
           logging: false,
           useCORS: true,
           allowTaint: true,
-          backgroundColor: null
+          backgroundColor: "#ffffff",
+          windowWidth: 1200, // Force consistent rendering width
         });
         
-        // Add the visible tab section
-        const tabName = document.querySelector('[role="tab"][data-state="active"]')?.textContent || "Results";
-        pdf.setFontSize(16);
-        pdf.text(tabName, 14, 40);
+        // Calculate image dimensions
+        const imgWidth = width - 20;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
         
-        const visibleImg = visibleCanvas.toDataURL('image/png');
-        const imgHeight = (visibleCanvas.height * width) / visibleCanvas.width;
-        pdf.addImage(visibleImg, 'PNG', 10, 45, width - 20, Math.min(imgHeight * 0.5, height - 55));
+        // Add the image to the PDF
+        const imgData = canvas.toDataURL('image/png');
         
-        // Save the PDF
-        pdf.save('contrast-accessibility-report.pdf');
-      } else {
-        throw new Error("Active tab view not found");
+        if (currentY + imgHeight > height) {
+          pdf.addPage();
+          currentY = 20;
+        }
+        
+        pdf.addImage(imgData, 'PNG', 10, currentY, imgWidth, imgHeight);
+        
+        // Restore the panel's original style
+        tabPanel.style.cssText = originalStyle;
+        
+        // Update Y position for next section
+        currentY += imgHeight + 15;
+        
+        // Add a new page for the next tab if needed
+        if (tabId !== tabIds[tabIds.length - 1] && currentY > height - 30) {
+          pdf.addPage();
+          currentY = 20;
+        }
       }
+      
+      // Restore the originally active tab
+      originalActiveTab.click();
+      
+      // Save the PDF
+      pdf.save('contrast-accessibility-report.pdf');
+      
+      toast({
+        title: "PDF Generated Successfully",
+        description: "Your accessibility report has been downloaded.",
+      });
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast({
