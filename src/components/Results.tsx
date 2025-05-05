@@ -1,7 +1,8 @@
+
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Eye, Palette, FileDown, ExternalLink } from "lucide-react";
+import { Eye, Palette, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
@@ -197,19 +198,19 @@ const Results = ({ results }: ResultsProps) => {
           <div className="text-xs font-mono text-center text-gray-600">{result.ratio}:1</div>
           <div className="flex justify-between gap-0.5 px-0.5">
             <div className={cn(
-              "flex-1 text-center rounded text-[0.65rem] leading-tight font-semibold",
+              "flex-1 text-center rounded text-[0.7rem] leading-tight font-semibold",
               result.level.aaa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             )}>
               AAA
             </div>
             <div className={cn(
-              "flex-1 text-center rounded text-[0.65rem] leading-tight font-semibold",
+              "flex-1 text-center rounded text-[0.7rem] leading-tight font-semibold",
               result.level.aa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             )}>
               AA
             </div>
             <div className={cn(
-              "flex-1 text-center rounded text-[0.65rem] leading-tight font-semibold",
+              "flex-1 text-center rounded text-[0.7rem] leading-tight font-semibold",
               result.level.aaLarge ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             )}>
               AAL
@@ -217,6 +218,16 @@ const Results = ({ results }: ResultsProps) => {
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  // New function to render swatch with pairing label for accessibility tabs
+  const renderSwatchWithLabel = (color1: string, color2: string, result: ColorResult, index: number) => (
+    <div className="flex flex-col">
+      <div className="text-xs font-mono mb-1 text-center overflow-hidden text-ellipsis">
+        {color1} + {color2}
+      </div>
+      {renderSwatch(color1, color2, result)}
     </div>
   );
 
@@ -268,13 +279,13 @@ const Results = ({ results }: ResultsProps) => {
                 <h3 className="text-lg font-medium mb-2 text-green-700 border-b pb-1">
                   Passing AAA Level ({accessibilityGroups.aaa.length})
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {accessibilityGroups.aaa.map(({ color1, color2, result }, index) => (
                     <TooltipProvider key={`aaa-${index}`}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className="relative">
-                            {renderSwatch(color1, color2, result)}
+                            {renderSwatchWithLabel(color1, color2, result, index)}
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="text-xs font-mono">
@@ -293,13 +304,13 @@ const Results = ({ results }: ResultsProps) => {
                 <h3 className="text-lg font-medium mb-2 text-blue-700 border-b pb-1">
                   Passing AA Level ({accessibilityGroups.aa.length})
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {accessibilityGroups.aa.map(({ color1, color2, result }, index) => (
                     <TooltipProvider key={`aa-${index}`}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className="relative">
-                            {renderSwatch(color1, color2, result)}
+                            {renderSwatchWithLabel(color1, color2, result, index)}
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="text-xs font-mono">
@@ -318,13 +329,13 @@ const Results = ({ results }: ResultsProps) => {
                 <h3 className="text-lg font-medium mb-2 text-yellow-700 border-b pb-1">
                   Passing AA Large Only ({accessibilityGroups.aaLarge.length})
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {accessibilityGroups.aaLarge.map(({ color1, color2, result }, index) => (
                     <TooltipProvider key={`aaLarge-${index}`}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className="relative">
-                            {renderSwatch(color1, color2, result)}
+                            {renderSwatchWithLabel(color1, color2, result, index)}
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="text-xs font-mono">
@@ -343,13 +354,13 @@ const Results = ({ results }: ResultsProps) => {
                 <h3 className="text-lg font-medium mb-2 text-red-700 border-b pb-1">
                   Failed All Levels ({accessibilityGroups.failed.length})
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {accessibilityGroups.failed.map(({ color1, color2, result }, index) => (
                     <TooltipProvider key={`failed-${index}`}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div className="relative">
-                            {renderSwatch(color1, color2, result)}
+                            {renderSwatchWithLabel(color1, color2, result, index)}
                           </div>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="text-xs font-mono">
@@ -366,14 +377,12 @@ const Results = ({ results }: ResultsProps) => {
         </TabsContent>
       </Tabs>
       
-      {/* Add a visible download button that directly calls downloadPdfReport */}
       <div className="flex justify-end mt-4">
         <Button 
           variant="outline" 
           size="sm" 
           onClick={downloadPdfReport}
           className="flex items-center gap-2"
-          data-download-pdf-report
         >
           <FileDown className="h-4 w-4" />
           Download PDF Report
