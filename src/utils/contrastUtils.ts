@@ -24,14 +24,18 @@ export const contrast = (rgb1: number[], rgb2: number[]) => {
   return ((brightest + 0.05) / (darkest + 0.05)).toFixed(2);
 };
 
-export const calculateColorContrast = (colors: string[]) => {
+export const calculateColorContrast = (colors: string[], includeBW: boolean = true) => {
   const validColors = colors.filter(color => /^#[0-9A-Fa-f]{6}$/.test(color));
   
   if (validColors.length < 1) {
     return { results: {}, accessibilityGroups: null, passCounts: null };
   }
 
-  const allColors = ['#FFFFFF', '#000000', ...validColors];
+  // Only include black and white if includeBW is true
+  const allColors = includeBW 
+    ? ['#FFFFFF', '#000000', ...validColors]
+    : [...validColors];
+    
   const results: Record<string, Record<string, ColorResult>> = {};
   let passCounts = { aaa: 0, aa: 0, aaLarge: 0, total: 0 };
   

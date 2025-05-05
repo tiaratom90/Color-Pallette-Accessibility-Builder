@@ -6,12 +6,14 @@ import Results from '@/components/Results';
 import ColorInputList from '@/components/form/ColorInputList';
 import ActionButtons from '@/components/form/ActionButtons';
 import ContrastSummary from '@/components/summary/ContrastSummary';
+import BlackWhiteToggle from '@/components/form/BlackWhiteToggle';
 import { calculateColorContrast, SummaryType } from '@/utils/contrastUtils';
 
 const Index = () => {
   const [colors, setColors] = useState<string[]>(Array(6).fill(''));
   const [results, setResults] = useState<Record<string, Record<string, any>>>({});
   const [summary, setSummary] = useState<SummaryType | null>(null);
+  const [includeBW, setIncludeBW] = useState<boolean>(true);
   
   const { toast } = useToast();
 
@@ -33,7 +35,7 @@ const Index = () => {
       return;
     }
 
-    const { results: contrastResults, passCounts } = calculateColorContrast(colors);
+    const { results: contrastResults, passCounts } = calculateColorContrast(colors, includeBW);
     
     setResults(contrastResults);
     setSummary(passCounts);
@@ -48,6 +50,7 @@ const Index = () => {
     setColors(Array(6).fill(''));
     setResults({});
     setSummary(null);
+    setIncludeBW(true);
     toast({
       title: "Form Reset",
       description: "All inputs have been cleared.",
@@ -67,6 +70,10 @@ const Index = () => {
               <ColorInputList 
                 colors={colors} 
                 onColorChange={handleColorChange} 
+              />
+              <BlackWhiteToggle
+                includeBW={includeBW}
+                onChange={setIncludeBW}
               />
               <ActionButtons 
                 onCheckContrast={checkColors} 
