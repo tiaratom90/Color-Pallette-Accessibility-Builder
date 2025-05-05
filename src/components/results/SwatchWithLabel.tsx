@@ -24,6 +24,11 @@ const SwatchWithLabel = ({ color1, color2, result, color1Name, color2Name }: Swa
     });
   };
 
+  // Format the color display as "Color Name (HEX)"
+  const formatColorDisplay = (name: string, hex: string) => {
+    return `${name} (${hex})`;
+  };
+
   return (
     <div className="relative group">
       <div className="text-xs mb-2">
@@ -32,16 +37,15 @@ const SwatchWithLabel = ({ color1, color2, result, color1Name, color2Name }: Swa
             className="w-3 h-3 rounded-full border"
             style={{ backgroundColor: color1 }}
           />
-          <span className="font-medium truncate max-w-[100px]">
-            {color1Name} 
+          <span className="font-medium truncate max-w-[200px]">
+            {formatColorDisplay(color1Name || "", color1)}
             <Button 
               variant="ghost" 
               size="sm" 
               className="h-5 px-1 text-xs ml-1" 
               onClick={() => copyToClipboard(color1, "Color code")}
             >
-              <span className="text-gray-500 font-mono">{color1}</span>
-              <Copy className="ml-1 h-3 w-3 opacity-70" />
+              <Copy className="h-3 w-3 opacity-70" />
             </Button>
           </span>
         </div>
@@ -50,16 +54,15 @@ const SwatchWithLabel = ({ color1, color2, result, color1Name, color2Name }: Swa
             className="w-3 h-3 rounded-full border"
             style={{ backgroundColor: color2 }}
           />
-          <span className="font-medium truncate max-w-[100px]">
-            {color2Name} 
+          <span className="font-medium truncate max-w-[200px]">
+            {formatColorDisplay(color2Name || "", color2)}
             <Button 
               variant="ghost" 
               size="sm" 
               className="h-5 px-1 text-xs ml-1" 
               onClick={() => copyToClipboard(color2, "Color code")}
             >
-              <span className="text-gray-500 font-mono">{color2}</span>
-              <Copy className="ml-1 h-3 w-3 opacity-70" />
+              <Copy className="h-3 w-3 opacity-70" />
             </Button>
           </span>
         </div>

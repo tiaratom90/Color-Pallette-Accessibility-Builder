@@ -9,42 +9,47 @@ interface ByAccessibilityTabProps {
 
 const ByAccessibilityTab = ({ accessibilityGroups, colorNames }: ByAccessibilityTabProps) => {
   // Find color name by hex color
-  const getColorName = (hexColor: string, results: AccessibilityGroups): string => {
-    // Find all unique colors present in results
-    const allColors = new Set<string>();
-    
-    for (const category of Object.values(results)) {
-      for (const combo of category) {
-        allColors.add(combo.color1);
-        allColors.add(combo.color2);
-      }
-    }
-    
-    // Create a mapping of colors to their original index
-    const colorMap = new Map<string, number>();
-    
-    // Calculate the index for each unique color
-    // This assumes colors were added in order
-    const uniqueColors = Array.from(allColors).filter(c => c !== '#FFFFFF' && c !== '#000000');
-    
-    uniqueColors.forEach((color, index) => {
-      colorMap.set(color, index);
-    });
-    
+  const getColorName = (hexColor: string): string => {
     // Handle black and white separately
     if (hexColor === '#FFFFFF') return 'White';
     if (hexColor === '#000000') return 'Black';
     
-    // Get the index for the current color
-    const index = colorMap.get(hexColor);
+    // Find the index of this color in the user's original color list
+    const colorIndex = colorNames.findIndex((_, index) => {
+      // Get the original list of user colors from the first color of each pair
+      // in the results, excluding black and white
+      const userColors = Object.values(accessibilityGroups)
+        .flat()
+        .map(combo => combo.color1)
+        .filter(color => color !== '#FFFFFF' && color !== '#000000');
+      
+      // Get unique colors to map to indices
+      const uniqueColors = Array.from(new Set(userColors));
+      
+      // Check if the current hexColor matches the color at this index
+      return uniqueColors[index] === hexColor;
+    });
     
-    if (index !== undefined && index < colorNames.length) {
-      return colorNames[index] && colorNames[index].trim() !== '' 
-        ? colorNames[index] 
-        : `Color ${index + 1}`;
+    if (colorIndex !== -1 && colorNames[colorIndex] && colorNames[colorIndex].trim() !== '') {
+      return colorNames[colorIndex];
     }
     
-    return hexColor; // Fallback to the hex code if name not found
+    // If no name is found, use a generic name based on color position
+    const allColors = Object.values(accessibilityGroups)
+      .flat()
+      .map(combo => [combo.color1, combo.color2])
+      .flat();
+    
+    const uniqueColors = Array.from(new Set(allColors))
+      .filter(color => color !== '#FFFFFF' && color !== '#000000');
+    
+    const position = uniqueColors.indexOf(hexColor);
+    
+    if (position !== -1) {
+      return `Color ${position + 1}`;
+    }
+    
+    return ""; // Fallback
   };
 
   return (
@@ -61,8 +66,8 @@ const ByAccessibilityTab = ({ accessibilityGroups, colorNames }: ByAccessibility
                   color1={color1} 
                   color2={color2} 
                   result={result}
-                  color1Name={getColorName(color1, accessibilityGroups)}
-                  color2Name={getColorName(color2, accessibilityGroups)}
+                  color1Name={getColorName(color1)}
+                  color2Name={getColorName(color2)}
                 />
               </div>
             ))}
@@ -82,8 +87,8 @@ const ByAccessibilityTab = ({ accessibilityGroups, colorNames }: ByAccessibility
                   color1={color1} 
                   color2={color2} 
                   result={result}
-                  color1Name={getColorName(color1, accessibilityGroups)}
-                  color2Name={getColorName(color2, accessibilityGroups)}
+                  color1Name={getColorName(color1)}
+                  color2Name={getColorName(color2)}
                 />
               </div>
             ))}
@@ -103,8 +108,8 @@ const ByAccessibilityTab = ({ accessibilityGroups, colorNames }: ByAccessibility
                   color1={color1} 
                   color2={color2} 
                   result={result}
-                  color1Name={getColorName(color1, accessibilityGroups)}
-                  color2Name={getColorName(color2, accessibilityGroups)}
+                  color1Name={getColorName(color1)}
+                  color2Name={getColorName(color2)}
                 />
               </div>
             ))}
@@ -124,8 +129,8 @@ const ByAccessibilityTab = ({ accessibilityGroups, colorNames }: ByAccessibility
                   color1={color1} 
                   color2={color2} 
                   result={result}
-                  color1Name={getColorName(color1, accessibilityGroups)}
-                  color2Name={getColorName(color2, accessibilityGroups)}
+                  color1Name={getColorName(color1)}
+                  color2Name={getColorName(color2)}
                 />
               </div>
             ))}
