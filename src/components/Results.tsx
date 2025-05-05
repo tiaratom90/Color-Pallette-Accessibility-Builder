@@ -234,17 +234,18 @@ const Results = ({ results }: ResultsProps) => {
   );
 
   // New function to render swatch with pairing label for accessibility tabs
+  // Updated to match the same size and style as the color tab swatches
   const renderSwatchWithLabel = (color1: string, color2: string, result: ColorResult) => (
-    <div className="flex flex-col">
-      <div className="text-xs font-mono mb-1 text-center">
-        <div className="flex items-center justify-center gap-1 mb-1">
+    <div className="relative">
+      <div className="text-xs font-mono mb-1">
+        <div className="flex items-center gap-1 mb-0.5">
           <div 
             className="w-3 h-3 rounded-full border"
             style={{ backgroundColor: color1 }}
           />
           <span className="truncate">{color1}</span>
         </div>
-        <div className="flex items-center justify-center gap-1">
+        <div className="flex items-center gap-1">
           <div 
             className="w-3 h-3 rounded-full border"
             style={{ backgroundColor: color2 }}
