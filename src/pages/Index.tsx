@@ -8,7 +8,6 @@ import ActionButtons from '@/components/form/ActionButtons';
 import ContrastSummary from '@/components/summary/ContrastSummary';
 import BlackWhiteToggle from '@/components/form/BlackWhiteToggle';
 import { calculateColorContrast, SummaryType } from '@/utils/contrastUtils';
-import SuggestPaletteButton from '@/components/form/SuggestPaletteButton';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useSearchParams } from 'react-router-dom';
 
@@ -112,12 +111,11 @@ const Index = () => {
                 Check the contrast ratios between your colors to ensure your design meets accessibility standards.
               </p>
 
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-6">
                 <BlackWhiteToggle
                   includeBW={includeBW}
                   onChange={setIncludeBW}
                 />
-                <SuggestPaletteButton onSuggest={(suggestedColors) => setColors(suggestedColors)} />
               </div>
               
               <ColorInputList 

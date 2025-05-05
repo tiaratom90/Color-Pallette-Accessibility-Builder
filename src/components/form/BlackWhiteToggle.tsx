@@ -9,7 +9,7 @@ interface BlackWhiteToggleProps {
 
 const BlackWhiteToggle = ({ includeBW, onChange }: BlackWhiteToggleProps) => {
   return (
-    <div className="rounded-md border px-3 py-2 inline-flex items-center space-x-2 bg-white dark:bg-gray-800 dark:border-gray-700">
+    <div className="px-3 py-2 inline-flex items-center space-x-2 bg-white dark:bg-gray-800">
       <Switch 
         id="include-bw" 
         checked={includeBW} 

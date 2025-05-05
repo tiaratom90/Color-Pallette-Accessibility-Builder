@@ -6,8 +6,7 @@ import { Moon, Sun } from "lucide-react";
 const ThemeToggle = () => {
   const [darkMode, setDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
-    return savedTheme === "dark" || 
-      (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    return savedTheme === "dark";
   });
   
   useEffect(() => {
