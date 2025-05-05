@@ -186,31 +186,43 @@ const Results = ({ results }: ResultsProps) => {
     }
   };
 
+  // Updated swatch rendering to show hex color info and make swatches more rectangular
   const renderSwatch = (color1: string, color2: string, result: ColorResult) => (
     <div className="relative">
-      <div className="aspect-square h-16 rounded-md overflow-hidden shadow-sm border border-gray-100">
-        <div className="h-3/4" style={{ backgroundColor: color1 }}>
+      <div className="w-full rounded-md overflow-hidden shadow-sm border border-gray-100">
+        {/* The text display area */}
+        <div className="h-16" style={{ backgroundColor: color1 }}>
           <div className="h-full flex items-center justify-center font-serif text-xl" style={{ color: color2 }}>
             Aa
           </div>
         </div>
-        <div className="h-1/4 bg-white p-1">
-          <div className="text-xs font-mono text-center text-gray-600">{result.ratio}:1</div>
-          <div className="flex justify-between gap-0.5 px-0.5">
+        {/* Contrast ratio display */}
+        <div className="bg-white p-2">
+          <div className="text-xs font-mono text-center text-gray-600 mb-1">{result.ratio}:1</div>
+          {/* Second color indicator */}
+          <div className="flex items-center gap-2 mb-1">
+            <div 
+              className="w-3 h-3 rounded-full border"
+              style={{ backgroundColor: color2 }}
+            />
+            <span className="font-mono text-xs truncate">{color2}</span>
+          </div>
+          {/* Accessibility indicators */}
+          <div className="flex justify-between gap-0.5">
             <div className={cn(
-              "flex-1 text-center rounded text-[0.7rem] leading-tight font-semibold",
+              "flex-1 text-center rounded text-[0.65rem] leading-tight font-semibold py-0.5",
               result.level.aaa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             )}>
               AAA
             </div>
             <div className={cn(
-              "flex-1 text-center rounded text-[0.7rem] leading-tight font-semibold",
+              "flex-1 text-center rounded text-[0.65rem] leading-tight font-semibold py-0.5",
               result.level.aa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             )}>
               AA
             </div>
             <div className={cn(
-              "flex-1 text-center rounded text-[0.7rem] leading-tight font-semibold",
+              "flex-1 text-center rounded text-[0.65rem] leading-tight font-semibold py-0.5",
               result.level.aaLarge ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             )}>
               AAL
@@ -222,12 +234,57 @@ const Results = ({ results }: ResultsProps) => {
   );
 
   // New function to render swatch with pairing label for accessibility tabs
-  const renderSwatchWithLabel = (color1: string, color2: string, result: ColorResult, index: number) => (
+  const renderSwatchWithLabel = (color1: string, color2: string, result: ColorResult) => (
     <div className="flex flex-col">
-      <div className="text-xs font-mono mb-1 text-center overflow-hidden text-ellipsis">
-        {color1} + {color2}
+      <div className="text-xs font-mono mb-1 text-center">
+        <div className="flex items-center justify-center gap-1 mb-1">
+          <div 
+            className="w-3 h-3 rounded-full border"
+            style={{ backgroundColor: color1 }}
+          />
+          <span className="truncate">{color1}</span>
+        </div>
+        <div className="flex items-center justify-center gap-1">
+          <div 
+            className="w-3 h-3 rounded-full border"
+            style={{ backgroundColor: color2 }}
+          />
+          <span className="truncate">{color2}</span>
+        </div>
       </div>
-      {renderSwatch(color1, color2, result)}
+      <div className="w-full rounded-md overflow-hidden shadow-sm border border-gray-100">
+        {/* The text display area */}
+        <div className="h-16" style={{ backgroundColor: color1 }}>
+          <div className="h-full flex items-center justify-center font-serif text-xl" style={{ color: color2 }}>
+            Aa
+          </div>
+        </div>
+        {/* Contrast ratio and indicators */}
+        <div className="bg-white p-2">
+          <div className="text-xs font-mono text-center text-gray-600 mb-1">{result.ratio}:1</div>
+          {/* Accessibility indicators */}
+          <div className="flex justify-between gap-0.5">
+            <div className={cn(
+              "flex-1 text-center rounded text-[0.65rem] leading-tight font-semibold py-0.5",
+              result.level.aaa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            )}>
+              AAA
+            </div>
+            <div className={cn(
+              "flex-1 text-center rounded text-[0.65rem] leading-tight font-semibold py-0.5",
+              result.level.aa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            )}>
+              AA
+            </div>
+            <div className={cn(
+              "flex-1 text-center rounded text-[0.65rem] leading-tight font-semibold py-0.5",
+              result.level.aaLarge ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            )}>
+              AAL
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -251,16 +308,16 @@ const Results = ({ results }: ResultsProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {Object.entries(results).map(([color1, combinations]) => (
               <Card key={color1} className="overflow-hidden bg-white shadow-sm">
-                <div className="p-2 border-b">
+                <div className="p-3 border-b">
                   <div className="flex items-center gap-2">
                     <div 
                       className="w-4 h-4 rounded-full border shadow-sm"
                       style={{ backgroundColor: color1 }}
                     />
-                    <span className="font-mono text-xs uppercase">{color1}</span>
+                    <span className="font-mono text-sm">{color1}</span>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3">
                   {Object.entries(combinations).map(([color2, result]) => (
                     <div key={color2}>
                       {renderSwatch(color1, color2, result)}
@@ -279,21 +336,11 @@ const Results = ({ results }: ResultsProps) => {
                 <h3 className="text-lg font-medium mb-2 text-green-700 border-b pb-1">
                   Passing AAA Level ({accessibilityGroups.aaa.length})
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {accessibilityGroups.aaa.map(({ color1, color2, result }, index) => (
-                    <TooltipProvider key={`aaa-${index}`}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="relative">
-                            {renderSwatchWithLabel(color1, color2, result, index)}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs font-mono">
-                          <div>{color1} + {color2}</div>
-                          <div>Ratio: {result.ratio}:1</div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <div key={`aaa-${index}`} className="relative">
+                      {renderSwatchWithLabel(color1, color2, result)}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -304,21 +351,11 @@ const Results = ({ results }: ResultsProps) => {
                 <h3 className="text-lg font-medium mb-2 text-blue-700 border-b pb-1">
                   Passing AA Level ({accessibilityGroups.aa.length})
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {accessibilityGroups.aa.map(({ color1, color2, result }, index) => (
-                    <TooltipProvider key={`aa-${index}`}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="relative">
-                            {renderSwatchWithLabel(color1, color2, result, index)}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs font-mono">
-                          <div>{color1} + {color2}</div>
-                          <div>Ratio: {result.ratio}:1</div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <div key={`aa-${index}`} className="relative">
+                      {renderSwatchWithLabel(color1, color2, result)}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -329,21 +366,11 @@ const Results = ({ results }: ResultsProps) => {
                 <h3 className="text-lg font-medium mb-2 text-yellow-700 border-b pb-1">
                   Passing AA Large Only ({accessibilityGroups.aaLarge.length})
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {accessibilityGroups.aaLarge.map(({ color1, color2, result }, index) => (
-                    <TooltipProvider key={`aaLarge-${index}`}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="relative">
-                            {renderSwatchWithLabel(color1, color2, result, index)}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs font-mono">
-                          <div>{color1} + {color2}</div>
-                          <div>Ratio: {result.ratio}:1</div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <div key={`aaLarge-${index}`} className="relative">
+                      {renderSwatchWithLabel(color1, color2, result)}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -354,21 +381,11 @@ const Results = ({ results }: ResultsProps) => {
                 <h3 className="text-lg font-medium mb-2 text-red-700 border-b pb-1">
                   Failed All Levels ({accessibilityGroups.failed.length})
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {accessibilityGroups.failed.map(({ color1, color2, result }, index) => (
-                    <TooltipProvider key={`failed-${index}`}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="relative">
-                            {renderSwatchWithLabel(color1, color2, result, index)}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs font-mono">
-                          <div>{color1} + {color2}</div>
-                          <div>Ratio: {result.ratio}:1</div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <div key={`failed-${index}`} className="relative">
+                      {renderSwatchWithLabel(color1, color2, result)}
+                    </div>
                   ))}
                 </div>
               </div>
