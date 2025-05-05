@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -56,64 +55,6 @@ const Results = ({ results }: ResultsProps) => {
       }
     });
   });
-
-  const downloadTextReport = () => {
-    // Generate report content
-    let content = "# Color Contrast Accessibility Report\n\n";
-    content += "Generated on: " + new Date().toLocaleString() + "\n\n";
-    
-    // Add legends
-    content += "## WCAG 2.1 Contrast Requirements\n";
-    content += "- AAA: Contrast ratio of at least 7:1 for normal text and 4.5:1 for large text\n";
-    content += "- AA: Contrast ratio of at least 4.5:1 for normal text and 3:1 for large text\n";
-    content += "- AA Large: Contrast ratio of at least 3:1 for large text (18pt+ or 14pt+ bold)\n\n";
-    
-    // AAA section
-    if (accessibilityGroups.aaa.length > 0) {
-      content += "## Passing AAA Level (" + accessibilityGroups.aaa.length + ")\n";
-      accessibilityGroups.aaa.forEach(({ color1, color2, result }) => {
-        content += `- ${color1} + ${color2}: ${result.ratio}:1\n`;
-      });
-      content += "\n";
-    }
-    
-    // AA section
-    if (accessibilityGroups.aa.length > 0) {
-      content += "## Passing AA Level (" + accessibilityGroups.aa.length + ")\n";
-      accessibilityGroups.aa.forEach(({ color1, color2, result }) => {
-        content += `- ${color1} + ${color2}: ${result.ratio}:1\n`;
-      });
-      content += "\n";
-    }
-    
-    // AA Large section
-    if (accessibilityGroups.aaLarge.length > 0) {
-      content += "## Passing AA Large Only (" + accessibilityGroups.aaLarge.length + ")\n";
-      accessibilityGroups.aaLarge.forEach(({ color1, color2, result }) => {
-        content += `- ${color1} + ${color2}: ${result.ratio}:1\n`;
-      });
-      content += "\n";
-    }
-    
-    // Failed section
-    if (accessibilityGroups.failed.length > 0) {
-      content += "## Failed All Levels (" + accessibilityGroups.failed.length + ")\n";
-      accessibilityGroups.failed.forEach(({ color1, color2, result }) => {
-        content += `- ${color1} + ${color2}: ${result.ratio}:1\n`;
-      });
-    }
-    
-    // Create blob and download
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'contrast-accessibility-report.md';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   const downloadPdfReport = async () => {
     try {
@@ -181,8 +122,7 @@ const Results = ({ results }: ResultsProps) => {
       }
     } catch (error) {
       console.error("Error generating PDF:", error);
-      // Fallback to text report if PDF fails
-      downloadTextReport();
+      alert("Error generating PDF. Please try again.");
     }
   };
 
@@ -291,6 +231,19 @@ const Results = ({ results }: ResultsProps) => {
 
   return (
     <div>
+      <div className="flex justify-between mb-4 items-center">
+        <h2 className="text-xl font-medium">Results</h2>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={downloadPdfReport}
+          className="flex items-center gap-2"
+        >
+          <FileDown className="h-4 w-4" />
+          Download PDF Report
+        </Button>
+      </div>
+    
       <Tabs defaultValue="by-color" className="w-full">
         <div className="flex justify-center mb-4">
           <TabsList>
@@ -394,18 +347,6 @@ const Results = ({ results }: ResultsProps) => {
           </div>
         </TabsContent>
       </Tabs>
-      
-      <div className="flex justify-end mt-4">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={downloadPdfReport}
-          className="flex items-center gap-2"
-        >
-          <FileDown className="h-4 w-4" />
-          Download PDF Report
-        </Button>
-      </div>
     </div>
   );
 };
