@@ -4,7 +4,7 @@ import ColorInput from '@/components/ColorInput';
 import Results from '@/components/Results';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { RefreshCw, Check, ExternalLink } from 'lucide-react';
+import { RefreshCw, Check, ExternalLink, FileDown } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface ColorResult {
