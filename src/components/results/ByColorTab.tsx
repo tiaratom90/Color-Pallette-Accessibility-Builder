@@ -15,7 +15,7 @@ const ByColorTab = ({ results, colorNames }: ByColorTabProps) => {
       Object.keys(results)[i] === hexColor
     );
     
-    return index !== -1 && colorNames[index] ? colorNames[index] : hexColor;
+    return index !== -1 && colorNames[index] ? colorNames[index] : `Color ${index + 1}`;
   };
 
   return (
@@ -28,12 +28,10 @@ const ByColorTab = ({ results, colorNames }: ByColorTabProps) => {
                 className="w-5 h-5 rounded-full border shadow-sm"
                 style={{ backgroundColor: color1 }}
               />
-              <span className="font-mono text-sm flex-shrink-0">{color1}</span>
-              {getColorName(color1) !== color1 && (
-                <span className="text-sm text-gray-500 truncate">
-                  ({getColorName(color1)})
-                </span>
-              )}
+              <span className="font-medium">
+                {getColorName(color1)} 
+                <span className="font-mono text-sm ml-1 text-gray-500">({color1})</span>
+              </span>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
@@ -43,7 +41,7 @@ const ByColorTab = ({ results, colorNames }: ByColorTabProps) => {
                   color1={color1} 
                   color2={color2} 
                   result={result} 
-                  colorName={getColorName(color2) !== color2 ? getColorName(color2) : undefined}
+                  colorName={getColorName(color2)}
                 />
               </div>
             ))}

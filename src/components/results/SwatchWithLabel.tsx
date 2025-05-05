@@ -26,47 +26,43 @@ const SwatchWithLabel = ({ color1, color2, result, color1Name, color2Name }: Swa
 
   return (
     <div className="relative group">
-      <div className="text-xs font-mono mb-2">
+      <div className="text-xs mb-2">
         <div className="flex items-center gap-1 mb-0.5">
           <div 
             className="w-3 h-3 rounded-full border"
             style={{ backgroundColor: color1 }}
           />
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-5 px-1 text-xs" 
-            onClick={() => copyToClipboard(color1, "Color code")}
-          >
-            <span className="truncate max-w-[100px]">{color1}</span>
-            <Copy className="ml-1 h-3 w-3 opacity-70" />
-          </Button>
+          <span className="font-medium truncate max-w-[100px]">
+            {color1Name} 
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-5 px-1 text-xs ml-1" 
+              onClick={() => copyToClipboard(color1, "Color code")}
+            >
+              <span className="text-gray-500 font-mono">{color1}</span>
+              <Copy className="ml-1 h-3 w-3 opacity-70" />
+            </Button>
+          </span>
         </div>
-        {color1Name && (
-          <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate pl-4">
-            ({color1Name})
-          </div>
-        )}
         <div className="flex items-center gap-1">
           <div 
             className="w-3 h-3 rounded-full border"
             style={{ backgroundColor: color2 }}
           />
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-5 px-1 text-xs" 
-            onClick={() => copyToClipboard(color2, "Color code")}
-          >
-            <span className="truncate max-w-[100px]">{color2}</span>
-            <Copy className="ml-1 h-3 w-3 opacity-70" />
-          </Button>
+          <span className="font-medium truncate max-w-[100px]">
+            {color2Name} 
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-5 px-1 text-xs ml-1" 
+              onClick={() => copyToClipboard(color2, "Color code")}
+            >
+              <span className="text-gray-500 font-mono">{color2}</span>
+              <Copy className="ml-1 h-3 w-3 opacity-70" />
+            </Button>
+          </span>
         </div>
-        {color2Name && (
-          <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate pl-4">
-            ({color2Name})
-          </div>
-        )}
       </div>
       <div className="w-full rounded-md overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 transition-all group-hover:shadow-md">
         {/* The text display area */}

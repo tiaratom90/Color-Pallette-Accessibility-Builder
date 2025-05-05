@@ -32,9 +32,11 @@ const ColorInput = ({ value, name, onChange, onNameChange, index }: ColorInputPr
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-4">
-        <Label htmlFor={`color-${index}`} className="w-20">
-          Color {index + 1}
-        </Label>
+        <Input
+          value={name || `Color ${index + 1}`}
+          onChange={handleNameChange}
+          className="w-20 text-sm"
+        />
         <div className="flex-1 flex items-center gap-2">
           <Input
             id={`color-${index}`}
@@ -54,14 +56,6 @@ const ColorInput = ({ value, name, onChange, onNameChange, index }: ColorInputPr
             />
           </div>
         </div>
-      </div>
-      <div className="flex items-center gap-4 pl-24">
-        <Input
-          placeholder="Enter color name (optional)"
-          value={name}
-          onChange={handleNameChange}
-          className="text-sm"
-        />
       </div>
     </div>
   );

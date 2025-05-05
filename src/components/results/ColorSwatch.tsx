@@ -50,22 +50,19 @@ const ColorSwatch = ({ color1, color2, result, colorName }: ColorSwatchProps) =>
               className="w-3 h-3 rounded-full border"
               style={{ backgroundColor: color2 }}
             />
-            <span className="font-mono text-xs truncate">
+            <span className="font-medium text-xs truncate">
+              {colorName} 
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="h-5 px-1 text-xs" 
+                className="h-5 px-1 text-xs ml-1" 
                 onClick={() => copyToClipboard(color2, "Color code")}
               >
-                {color2}
+                <span className="text-gray-500 font-mono">{color2}</span>
+                <Copy className="ml-1 h-3 w-3 opacity-70" />
               </Button>
             </span>
           </div>
-          {colorName && (
-            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate pl-5">
-              ({colorName})
-            </div>
-          )}
           {/* Accessibility indicators */}
           <div className="flex justify-between gap-0.5">
             <div className={cn(

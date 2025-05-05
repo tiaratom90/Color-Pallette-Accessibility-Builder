@@ -10,11 +10,18 @@ interface ByAccessibilityTabProps {
 const ByAccessibilityTab = ({ accessibilityGroups, colorNames }: ByAccessibilityTabProps) => {
   // Find color name by hex color
   const getColorName = (hexColor: string): string => {
-    const index = colorNames.findIndex((_, i) => 
-      colorNames[i] === hexColor
+    const colorIndex = Object.values(accessibilityGroups).flat().findIndex(
+      item => item.color1 === hexColor || item.color2 === hexColor
     );
     
-    return index !== -1 && colorNames[index] ? colorNames[index] : "";
+    if (colorIndex !== -1) {
+      const index = colorIndex % colorNames.length;
+      return colorNames[index] && colorNames[index].trim() !== '' 
+        ? colorNames[index] 
+        : `Color ${index + 1}`;
+    }
+    
+    return "";
   };
 
   return (

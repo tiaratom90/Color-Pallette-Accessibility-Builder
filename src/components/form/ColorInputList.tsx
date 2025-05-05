@@ -22,7 +22,7 @@ const ColorInputList = ({ colors, colorNames, onColorChange, onColorNameChange }
         />
       ))}
       <div className="text-sm text-gray-500 mt-2">
-        Enter up to 6 colors. You can name your colors for easier identification.
+        Enter up to 6 colors. You can customize the color labels.
       </div>
     </div>
   );
