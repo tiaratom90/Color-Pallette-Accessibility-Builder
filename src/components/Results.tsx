@@ -6,6 +6,8 @@ import { Eye, Palette, FileDown, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface Level {
   aaa: boolean;
@@ -55,7 +57,7 @@ const Results = ({ results }: ResultsProps) => {
     });
   });
 
-  const downloadReport = () => {
+  const downloadTextReport = () => {
     // Generate report content
     let content = "# Color Contrast Accessibility Report\n\n";
     content += "Generated on: " + new Date().toLocaleString() + "\n\n";
@@ -113,78 +115,107 @@ const Results = ({ results }: ResultsProps) => {
     URL.revokeObjectURL(url);
   };
 
+  const downloadPdfReport = async () => {
+    try {
+      // Create a new PDF document
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const width = pdf.internal.pageSize.getWidth();
+      const height = pdf.internal.pageSize.getHeight();
+      
+      // Title and date
+      pdf.setFontSize(20);
+      pdf.text("Color Contrast Accessibility Report", 14, 20);
+      pdf.setFontSize(10);
+      pdf.text("Generated on: " + new Date().toLocaleString(), 14, 28);
+      
+      // Get both tabbed views as screenshots
+      const tabViews = document.querySelectorAll('[role="tabpanel"]');
+      
+      if (tabViews.length >= 2) {
+        // Get By Color tab (first tab)
+        const byColorTab = tabViews[0] as HTMLElement;
+        const byColorCanvas = await html2canvas(byColorTab, {
+          scale: 2,
+          logging: false,
+          useCORS: true,
+          allowTaint: true
+        });
+        
+        // Get By Accessibility tab (second tab)
+        const byAccessibilityTab = tabViews[1] as HTMLElement;
+        const byAccessibilityCanvas = await html2canvas(byAccessibilityTab, {
+          scale: 2,
+          logging: false,
+          useCORS: true,
+          allowTaint: true 
+        });
+        
+        // Add By Color section
+        pdf.setFontSize(16);
+        pdf.text("By Color View", 14, 40);
+        const byColorImg = byColorCanvas.toDataURL('image/png');
+        const imgHeight = (byColorCanvas.height * width) / byColorCanvas.width;
+        pdf.addImage(byColorImg, 'PNG', 10, 45, width - 20, imgHeight * 0.5);
+        
+        // Add By Accessibility section on a new page if needed
+        if (45 + imgHeight * 0.5 + 60 > height) {
+          pdf.addPage();
+          pdf.setFontSize(16);
+          pdf.text("By Accessibility View", 14, 20);
+          const byAccessImg = byAccessibilityCanvas.toDataURL('image/png');
+          const accessImgHeight = (byAccessibilityCanvas.height * width) / byAccessibilityCanvas.width;
+          pdf.addImage(byAccessImg, 'PNG', 10, 25, width - 20, accessImgHeight * 0.5);
+        } else {
+          const yPosition = 45 + imgHeight * 0.5 + 20;
+          pdf.setFontSize(16);
+          pdf.text("By Accessibility View", 14, yPosition);
+          const byAccessImg = byAccessibilityCanvas.toDataURL('image/png');
+          const accessImgHeight = (byAccessibilityCanvas.height * width) / byAccessibilityCanvas.width;
+          pdf.addImage(byAccessImg, 'PNG', 10, yPosition + 5, width - 20, accessImgHeight * 0.5);
+        }
+        
+        // Save the PDF
+        pdf.save('contrast-accessibility-report.pdf');
+      } else {
+        throw new Error("Tab views not found");
+      }
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      // Fallback to text report if PDF fails
+      downloadTextReport();
+    }
+  };
+
   const renderSwatch = (color1: string, color2: string, result: ColorResult) => (
     <div className="relative">
-      <div className="aspect-square h-24 rounded-md overflow-hidden shadow-sm border border-gray-100">
+      <div className="aspect-square h-20 rounded-md overflow-hidden shadow-sm border border-gray-100">
         <div className="h-3/4" style={{ backgroundColor: color1 }}>
-          <div className="h-full flex items-center justify-center font-serif text-xl" style={{ color: color2 }}>
+          <div className="h-full flex items-center justify-center font-serif text-2xl" style={{ color: color2 }}>
             Aa
           </div>
         </div>
         <div className="h-1/4 bg-white p-1">
-          <div className="text-[8px] font-mono text-center text-gray-600">{result.ratio}:1</div>
+          <div className="text-xs font-mono text-center text-gray-600">{result.ratio}:1</div>
           <div className="flex justify-between gap-0.5 px-0.5">
             <div className={cn(
-              "flex-1 text-center rounded text-[6px] leading-tight",
+              "flex-1 text-center rounded text-xs leading-tight",
               result.level.aaa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             )}>
               AAA
             </div>
             <div className={cn(
-              "flex-1 text-center rounded text-[6px] leading-tight",
+              "flex-1 text-center rounded text-xs leading-tight",
               result.level.aa ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             )}>
               AA
             </div>
             <div className={cn(
-              "flex-1 text-center rounded text-[6px] leading-tight",
+              "flex-1 text-center rounded text-xs leading-tight",
               result.level.aaLarge ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
             )}>
               AAL
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const accessibilityLegend = (
-    <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-sm font-medium">WCAG 2.1 Contrast Requirements</h3>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline"
-            size="sm"
-            className="text-xs h-8"
-            onClick={downloadReport}
-          >
-            <FileDown className="h-3.5 w-3.5 mr-1" />
-            Download Report
-          </Button>
-          <a 
-            href="https://www.w3.org/TR/WCAG21/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center text-xs text-blue-600 hover:underline"
-          >
-            <ExternalLink className="h-3.5 w-3.5 mr-1" />
-            WCAG 2.1 Guidelines
-          </a>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-green-100 text-green-700 hover:bg-green-100">AAA</Badge>
-          <span>7:1+ (normal text), 4.5:1+ (large text)</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-blue-100 text-blue-700 hover:bg-blue-100">AA</Badge>
-          <span>4.5:1+ (normal text), 3:1+ (large text)</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">AA Large</Badge>
-          <span>3:1+ (18pt+ or 14pt+ bold text)</span>
         </div>
       </div>
     </div>
@@ -231,8 +262,6 @@ const Results = ({ results }: ResultsProps) => {
       </TabsContent>
 
       <TabsContent value="by-accessibility">
-        {accessibilityLegend}
-        
         <div className="space-y-6">
           {accessibilityGroups.aaa.length > 0 && (
             <div>

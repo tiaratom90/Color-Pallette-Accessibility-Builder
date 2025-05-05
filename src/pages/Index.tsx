@@ -1,9 +1,10 @@
+
 import { useState } from 'react';
 import ColorInput from '@/components/ColorInput';
 import Results from '@/components/Results';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { RefreshCw, Check } from 'lucide-react';
+import { RefreshCw, Check, ExternalLink } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface ColorResult {
@@ -155,12 +156,62 @@ const Index = () => {
                   </Button>
                 </div>
                 {summary && (
-                  <div className="mt-6 p-4 bg-white rounded-lg border">
-                    <h3 className="font-medium mb-2">Summary</h3>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p>{summary.aaa} of {summary.total} pass AAA</p>
-                      <p>{summary.aa} of {summary.total} pass AA</p>
-                      <p>{summary.aaLarge} of {summary.total} pass AA Large</p>
+                  <div className="mt-6 space-y-4">
+                    <div className="p-4 bg-white rounded-lg border">
+                      <h3 className="font-medium mb-2">Summary</h3>
+                      <div className="space-y-1 text-sm text-gray-600">
+                        <p>{summary.aaa} of {summary.total} pass AAA</p>
+                        <p>{summary.aa} of {summary.total} pass AA</p>
+                        <p>{summary.aaLarge} of {summary.total} pass AA Large</p>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-medium">WCAG 2.1 Contrast Requirements</h3>
+                        <a 
+                          href="https://www.w3.org/TR/WCAG21/" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-xs text-blue-600 hover:underline"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                          WCAG Guidelines
+                        </a>
+                      </div>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-[40px] text-green-700 font-semibold">AAA:</div>
+                          <span>7:1+ (normal text), 4.5:1+ (large text)</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-[40px] text-blue-700 font-semibold">AA:</div>
+                          <span>4.5:1+ (normal text), 3:1+ (large text)</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-[40px] text-yellow-700 font-semibold">AA Large:</div>
+                          <span>3:1+ (large text only: 18pt+ or 14pt+ bold)</span>
+                        </div>
+                      </div>
+                      {Object.keys(results).length > 0 && (
+                        <div className="mt-4 pt-3 border-t border-gray-200">
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            className="w-full text-xs h-8"
+                            onClick={() => {
+                              // Find the downloadPdfReport function in the Results component and trigger it
+                              const reportButton = document.querySelector('[data-download-pdf-report]');
+                              if (reportButton) {
+                                reportButton.dispatchEvent(new MouseEvent('click'));
+                              }
+                            }}
+                          >
+                            <FileDown className="h-3.5 w-3.5 mr-1" />
+                            Download PDF Report
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
