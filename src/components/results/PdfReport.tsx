@@ -22,20 +22,64 @@ const PdfReport = () => {
       const currentDate = new Date().toLocaleString();
       pdf.text("Generated on: " + currentDate, 14, 28);
       
-      // Get the tabs container and tab buttons
-      const tabsContainer = document.querySelector('[role="tabslist"]');
+      // Get the tabs container and tab buttons - using more specific selectors
+      const tabsList = document.querySelector('[class*="TabsList"]');
       const tabButtons = document.querySelectorAll('[role="tab"]');
       
-      if (!tabsContainer || tabButtons.length === 0) {
-        console.error("Tab elements not found in DOM");
-        throw new Error("Tabs not found");
+      console.log("TabsList found:", tabsList !== null);
+      console.log("Number of tab buttons found:", tabButtons.length);
+      
+      if (!tabsList || tabButtons.length === 0) {
+        // Fallback to trying to get just the active tab content if we can't get all tabs
+        console.log("Trying fallback for tab content");
+        const currentActivePanel = document.querySelector('[role="tabpanel"][data-state="active"]');
+        
+        if (!currentActivePanel) {
+          throw new Error("No tab content could be found to generate PDF");
+        }
+        
+        // Just capture the currently visible tab content
+        let currentY = 35;
+        pdf.setFontSize(16);
+        pdf.text("Contrast Analysis", 14, currentY);
+        currentY += 10;
+        
+        try {
+          const canvas = await html2canvas(currentActivePanel, {
+            scale: 1.5,
+            logging: false,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: "#ffffff"
+          });
+          
+          console.log("Canvas captured for active tab");
+          
+          // Calculate image dimensions
+          const imgWidth = width - 20;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          
+          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, currentY, imgWidth, imgHeight);
+        } catch (error) {
+          console.error("Error capturing active tab:", error);
+          pdf.setTextColor(255, 0, 0);
+          pdf.text("Error capturing content. Please try again.", 14, currentY);
+          pdf.setTextColor(0, 0, 0);
+        }
+        
+        // Save what we were able to capture
+        pdf.save('contrast-accessibility-report.pdf');
+        toast({
+          title: "PDF Generated",
+          description: "Only the current tab was captured due to technical limitations.",
+        });
+        return;
       }
       
       // Store the original active tab to restore later
       const originalActiveTab = document.querySelector('[role="tab"][data-state="active"]');
       if (!originalActiveTab) {
-        console.error("No active tab found");
-        throw new Error("No active tab found");
+        console.warn("No active tab found, using first tab");
       }
       
       // Process both tabs
@@ -47,7 +91,7 @@ const PdfReport = () => {
         
         // Find and click the tab button to make its content visible
         const tabButton = Array.from(tabButtons).find(
-          tab => tab.getAttribute('value') === tabId
+          tab => tab.getAttribute('value') === tabId || tab.textContent?.toLowerCase().includes(tabId.replace('-', ' '))
         ) as HTMLElement;
         
         if (!tabButton) {
@@ -59,12 +103,12 @@ const PdfReport = () => {
         tabButton.click();
         console.log(`Clicked tab: ${tabId}`);
         
-        // Wait a moment for tab transition
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Wait longer for tab transition to complete
+        await new Promise(resolve => setTimeout(resolve, 800));
         
-        // Find the now visible tab panel
+        // Find the now visible tab panel with more robust selector
         const tabPanel = document.querySelector(
-          `[role="tabpanel"][data-state="active"]`
+          `[role="tabpanel"][data-state="active"], [data-radix-tabs-panel][data-state="active"]`
         ) as HTMLElement;
         
         if (!tabPanel) {
@@ -81,43 +125,80 @@ const PdfReport = () => {
         currentY += 10;
         
         try {
-          // Temporarily adjust the panel for better capture
-          const originalStyle = tabPanel.style.cssText;
-          tabPanel.style.maxHeight = "none";
-          tabPanel.style.overflow = "visible";
+          // Get all child elements that are cards or content sections
+          const contentSections = tabPanel.querySelectorAll('.card, [class*="grid"] > div');
           
-          // Capture the tab content
-          const canvas = await html2canvas(tabPanel, {
-            scale: 1.5,
-            logging: true,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: "#ffffff",
-          });
-          
-          console.log(`Canvas captured for ${tabId}, width: ${canvas.width}, height: ${canvas.height}`);
-          
-          // Calculate image dimensions
-          const imgWidth = width - 20;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
-          
-          // Add the image to the PDF
-          const imgData = canvas.toDataURL('image/png');
-          
-          if (currentY + imgHeight > height) {
-            pdf.addPage();
-            currentY = 20;
-            console.log("Added new page due to content height");
+          if (contentSections.length > 0) {
+            console.log(`Found ${contentSections.length} content sections to capture individually`);
+            
+            // Capture each section separately for better results
+            for (let i = 0; i < contentSections.length; i++) {
+              const section = contentSections[i] as HTMLElement;
+              
+              // Skip empty or tiny sections
+              if (section.offsetHeight < 20 || section.offsetWidth < 20) {
+                continue;
+              }
+              
+              // Temporarily adjust the section for better capture
+              const originalStyle = section.style.cssText;
+              section.style.maxHeight = "none";
+              section.style.overflow = "visible";
+              
+              // Capture this section
+              const canvas = await html2canvas(section, {
+                scale: 1.5,
+                logging: false,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: "#ffffff"
+              });
+              
+              // Calculate image dimensions
+              const imgWidth = width - 20;
+              const imgHeight = (canvas.height * imgWidth) / canvas.width;
+              
+              // Add a new page if this section won't fit
+              if (currentY + imgHeight > height - 10) {
+                pdf.addPage();
+                currentY = 20;
+              }
+              
+              // Add the image to the PDF
+              pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, currentY, imgWidth, imgHeight);
+              
+              // Restore the section's original style
+              section.style.cssText = originalStyle;
+              
+              // Update Y position for next section
+              currentY += imgHeight + 10;
+            }
+          } else {
+            // Fallback to capturing the entire panel if no sections found
+            const canvas = await html2canvas(tabPanel, {
+              scale: 1.5,
+              logging: false,
+              useCORS: true,
+              allowTaint: true,
+              backgroundColor: "#ffffff"
+            });
+            
+            // Calculate image dimensions
+            const imgWidth = width - 20;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            
+            // Add a new page if needed
+            if (currentY + imgHeight > height - 10) {
+              pdf.addPage();
+              currentY = 20;
+            }
+            
+            // Add the image to the PDF
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, currentY, imgWidth, imgHeight);
+            
+            // Update Y position
+            currentY += imgHeight + 15;
           }
-          
-          pdf.addImage(imgData, 'PNG', 10, currentY, imgWidth, imgHeight);
-          console.log(`Added image to PDF for ${tabId}`);
-          
-          // Restore the panel's original style
-          tabPanel.style.cssText = originalStyle;
-          
-          // Update Y position for next section
-          currentY += imgHeight + 15;
           
           // Add a new page for the next tab if needed
           if (tabId !== tabIds[tabIds.length - 1] && currentY > height - 30) {
@@ -133,9 +214,11 @@ const PdfReport = () => {
         }
       }
       
-      // Restore the originally active tab
-      (originalActiveTab as HTMLElement).click();
-      console.log("Restored original active tab");
+      // Restore the originally active tab if found
+      if (originalActiveTab) {
+        (originalActiveTab as HTMLElement).click();
+        console.log("Restored original active tab");
+      }
       
       // Save the PDF
       pdf.save('contrast-accessibility-report.pdf');
