@@ -11,6 +11,10 @@ interface ByColorTabProps {
 const ByColorTab = ({ results, colorNames }: ByColorTabProps) => {
   // Find color name by hex color
   const getColorName = (hexColor: string): string => {
+    // Special handling for black and white
+    if (hexColor === '#FFFFFF') return 'White';
+    if (hexColor === '#000000') return 'Black';
+    
     const index = Object.values(results).findIndex((_, i) => 
       Object.keys(results)[i] === hexColor
     );

@@ -3,8 +3,11 @@ import { Button } from "@/components/ui/button";
 import { FileDown } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { useToast } from "@/hooks/use-toast";
 
 const PdfReport = () => {
+  const { toast } = useToast();
+
   const downloadPdfReport = async () => {
     try {
       // Create a new PDF document
@@ -19,59 +22,40 @@ const PdfReport = () => {
       pdf.text("Generated on: " + new Date().toLocaleString(), 14, 28);
       
       // Get both tabbed views as screenshots
-      const tabViews = document.querySelectorAll('[role="tabpanel"]');
+      const tabViews = document.querySelectorAll('[role="tabpanel"]:not([hidden])');
       
-      if (tabViews.length >= 2) {
-        // Get By Color tab (first tab)
-        const byColorTab = tabViews[0] as HTMLElement;
-        const byColorCanvas = await html2canvas(byColorTab, {
-          scale: 2,
+      if (tabViews.length > 0) {
+        // Only capture the visible tab panel
+        const visibleTabPanel = tabViews[0] as HTMLElement;
+        const visibleCanvas = await html2canvas(visibleTabPanel, {
+          scale: 1.5,
           logging: false,
           useCORS: true,
-          allowTaint: true
+          allowTaint: true,
+          backgroundColor: null
         });
         
-        // Get By Accessibility tab (second tab)
-        const byAccessibilityTab = tabViews[1] as HTMLElement;
-        const byAccessibilityCanvas = await html2canvas(byAccessibilityTab, {
-          scale: 2,
-          logging: false,
-          useCORS: true,
-          allowTaint: true 
-        });
-        
-        // Add By Color section
+        // Add the visible tab section
+        const tabName = document.querySelector('[role="tab"][data-state="active"]')?.textContent || "Results";
         pdf.setFontSize(16);
-        pdf.text("By Color View", 14, 40);
-        const byColorImg = byColorCanvas.toDataURL('image/png');
-        const imgHeight = (byColorCanvas.height * width) / byColorCanvas.width;
-        pdf.addImage(byColorImg, 'PNG', 10, 45, width - 20, imgHeight * 0.5);
+        pdf.text(tabName, 14, 40);
         
-        // Add By Accessibility section on a new page if needed
-        if (45 + imgHeight * 0.5 + 60 > height) {
-          pdf.addPage();
-          pdf.setFontSize(16);
-          pdf.text("By Accessibility View", 14, 20);
-          const byAccessImg = byAccessibilityCanvas.toDataURL('image/png');
-          const accessImgHeight = (byAccessibilityCanvas.height * width) / byAccessibilityCanvas.width;
-          pdf.addImage(byAccessImg, 'PNG', 10, 25, width - 20, accessImgHeight * 0.5);
-        } else {
-          const yPosition = 45 + imgHeight * 0.5 + 20;
-          pdf.setFontSize(16);
-          pdf.text("By Accessibility View", 14, yPosition);
-          const byAccessImg = byAccessibilityCanvas.toDataURL('image/png');
-          const accessImgHeight = (byAccessibilityCanvas.height * width) / byAccessibilityCanvas.width;
-          pdf.addImage(byAccessImg, 'PNG', 10, yPosition + 5, width - 20, accessImgHeight * 0.5);
-        }
+        const visibleImg = visibleCanvas.toDataURL('image/png');
+        const imgHeight = (visibleCanvas.height * width) / visibleCanvas.width;
+        pdf.addImage(visibleImg, 'PNG', 10, 45, width - 20, Math.min(imgHeight * 0.5, height - 55));
         
         // Save the PDF
         pdf.save('contrast-accessibility-report.pdf');
       } else {
-        throw new Error("Tab views not found");
+        throw new Error("Active tab view not found");
       }
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Error generating PDF. Please try again.");
+      toast({
+        title: "Error generating PDF",
+        description: "There was a problem creating the PDF. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
