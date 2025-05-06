@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Screenshot } from "lucide-react";
+import { Download } from "lucide-react"; // Changed from Screenshot to Download which is available in lucide-react
 import html2canvas from "html2canvas";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -23,8 +23,8 @@ const PdfReport = () => {
         throw new Error("No content found to capture");
       }
 
-      // Take screenshot with html2canvas
-      const canvas = await html2canvas(resultsContainer, {
+      // Take screenshot with html2canvas - fix the type error by explicitly casting to HTMLElement
+      const canvas = await html2canvas(resultsContainer as HTMLElement, {
         scale: 2, // Higher quality
         useCORS: true,
         allowTaint: true,
@@ -74,7 +74,7 @@ const PdfReport = () => {
       disabled={isGenerating}
       className="flex items-center gap-2"
     >
-      <Screenshot className="h-4 w-4" />
+      <Download className="h-4 w-4" />
       {isGenerating ? "Generating..." : "Download Screenshot"}
     </Button>
   );
