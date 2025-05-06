@@ -23,14 +23,33 @@ const PdfReport = () => {
         throw new Error("No content found to capture");
       }
 
-      // Take screenshot with html2canvas - fix the type error by explicitly casting to HTMLElement
-      const canvas = await html2canvas(resultsContainer as HTMLElement, {
+      // Create a clone of the results container to modify
+      const clone = resultsContainer.cloneNode(true) as HTMLElement;
+      
+      // Hide all copy buttons in the clone
+      const copyButtons = clone.querySelectorAll('button:has(.lucide-copy)');
+      copyButtons.forEach(button => {
+        button.style.display = 'none';
+      });
+      
+      // Add the clone to the document temporarily but make it invisible
+      clone.style.position = 'absolute';
+      clone.style.left = '-9999px';
+      clone.style.width = `${resultsContainer.clientWidth}px`;
+      document.body.appendChild(clone);
+      
+      // Take screenshot with html2canvas
+      const canvas = await html2canvas(clone, {
         scale: 2, // Higher quality
         useCORS: true,
         allowTaint: true,
         backgroundColor: "#ffffff",
-        logging: false
+        logging: false,
+        removeContainer: false // Important to prevent flickering
       });
+      
+      // Remove the clone
+      document.body.removeChild(clone);
       
       // Convert canvas to blob
       canvas.toBlob((blob) => {
