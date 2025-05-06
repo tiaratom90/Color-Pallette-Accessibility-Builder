@@ -29,7 +29,8 @@ const PdfReport = () => {
       // Hide all copy buttons in the clone
       const copyButtons = clone.querySelectorAll('button:has(.lucide-copy)');
       copyButtons.forEach(button => {
-        button.style.display = 'none';
+        // Fix: Cast each button element to HTMLElement before accessing style property
+        (button as HTMLElement).style.display = 'none';
       });
       
       // Add the clone to the document temporarily but make it invisible
