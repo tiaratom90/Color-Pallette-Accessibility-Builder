@@ -4,12 +4,20 @@ import { FileDown } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const PdfReport = () => {
   const { toast } = useToast();
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const downloadPdfReport = async () => {
     try {
+      setIsGenerating(true);
+      toast({
+        title: "Generating PDF",
+        description: "Please wait while we prepare your report...",
+      });
+
       // Create a new PDF document
       const pdf = new jsPDF('p', 'mm', 'a4');
       const width = pdf.internal.pageSize.getWidth();
@@ -22,170 +30,124 @@ const PdfReport = () => {
       const currentDate = new Date().toLocaleString();
       pdf.text("Generated on: " + currentDate, 14, 28);
       
-      // Get the tabs container and tab buttons - using more specific selectors
-      const tabsList = document.querySelector('[class*="TabsList"]');
-      const tabButtons = document.querySelectorAll('[role="tab"]');
+      // Create a temporary clone of the results for PDF generation
+      const resultsContainer = document.querySelector('[role="tabpanel"][data-state="active"]');
+      if (!resultsContainer) {
+        throw new Error("No tab content found to generate PDF");
+      }
       
-      console.log("TabsList found:", tabsList !== null);
-      console.log("Number of tab buttons found:", tabButtons.length);
+      // Clone the results container to modify it for PDF output
+      const clone = resultsContainer.cloneNode(true) as HTMLElement;
       
-      if (!tabsList || tabButtons.length === 0) {
-        // Fallback to trying to get just the active tab content if we can't get all tabs
-        console.log("Trying fallback for tab content");
-        const currentActivePanel = document.querySelector('[role="tabpanel"][data-state="active"]');
-        
-        if (!currentActivePanel) {
-          throw new Error("No tab content could be found to generate PDF");
+      // Apply styling to the clone to make it suitable for PDF
+      clone.style.position = "absolute";
+      clone.style.top = "-9999px";
+      clone.style.left = "-9999px";
+      clone.style.width = "900px"; // Fixed width for better scaling
+      clone.style.backgroundColor = "#ffffff";
+      clone.style.padding = "20px";
+      clone.style.boxSizing = "border-box";
+      
+      // Remove interactive elements from the clone
+      const buttonsToRemove = clone.querySelectorAll('button');
+      buttonsToRemove.forEach(button => button.remove());
+      
+      // Remove any tooltip or popup elements
+      const tooltipsToRemove = clone.querySelectorAll('[role="tooltip"], [data-radix-popper-content-wrapper]');
+      tooltipsToRemove.forEach(tooltip => tooltip.remove());
+      
+      // Add the clone to the document body temporarily
+      document.body.appendChild(clone);
+
+      // Ensure all content (including colors and styles) is properly rendered in the clone
+      const elements = clone.querySelectorAll('[style*="background-color"], [style*="color"]');
+      elements.forEach(el => {
+        const element = el as HTMLElement;
+        if (element.style.backgroundColor) {
+          element.setAttribute('data-bg-color', element.style.backgroundColor);
         }
-        
-        // Just capture the currently visible tab content
+        if (element.style.color) {
+          element.setAttribute('data-text-color', element.style.color);
+        }
+      });
+
+      try {
+        // Capture the content in sections to avoid size limitations
         let currentY = 35;
-        pdf.setFontSize(16);
-        pdf.text("Contrast Analysis", 14, currentY);
-        currentY += 10;
+        const sections = clone.querySelectorAll('.card, [class*="grid"] > div');
         
-        try {
-          // Cast the Element to HTMLElement
-          const canvas = await html2canvas(currentActivePanel as HTMLElement, {
-            scale: 1.5,
-            logging: false,
+        if (sections.length === 0) {
+          // If no sections found, capture the entire content
+          const canvas = await html2canvas(clone, {
+            scale: 1.25,
             useCORS: true,
             allowTaint: true,
-            backgroundColor: "#ffffff"
+            backgroundColor: "#ffffff",
+            logging: false,
+            onclone: (clonedDoc, element) => {
+              // Re-apply colors and styles in the clone
+              const colorElements = element.querySelectorAll('[data-bg-color], [data-text-color]');
+              colorElements.forEach(el => {
+                const colorEl = el as HTMLElement;
+                if (colorEl.hasAttribute('data-bg-color')) {
+                  colorEl.style.backgroundColor = colorEl.getAttribute('data-bg-color') || '';
+                }
+                if (colorEl.hasAttribute('data-text-color')) {
+                  colorEl.style.color = colorEl.getAttribute('data-text-color') || '';
+                }
+              });
+            }
           });
           
-          console.log("Canvas captured for active tab");
-          
-          // Calculate image dimensions
-          const imgWidth = width - 20;
+          const imgWidth = width - 30;
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
           
-          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, currentY, imgWidth, imgHeight);
-        } catch (error) {
-          console.error("Error capturing active tab:", error);
-          pdf.setTextColor(255, 0, 0);
-          pdf.text("Error capturing content. Please try again.", 14, currentY);
-          pdf.setTextColor(0, 0, 0);
-        }
-        
-        // Save what we were able to capture
-        pdf.save('contrast-accessibility-report.pdf');
-        toast({
-          title: "PDF Generated",
-          description: "Only the current tab was captured due to technical limitations.",
-        });
-        return;
-      }
-      
-      // Store the original active tab to restore later
-      const originalActiveTab = document.querySelector('[role="tab"][data-state="active"]');
-      if (!originalActiveTab) {
-        console.warn("No active tab found, using first tab");
-      }
-      
-      // Process both tabs
-      let currentY = 35;
-      const tabIds = ["by-color", "by-accessibility"];
-      
-      for (const tabId of tabIds) {
-        console.log(`Processing tab: ${tabId}`);
-        
-        // Find and click the tab button to make its content visible
-        const tabButton = Array.from(tabButtons).find(
-          tab => tab.getAttribute('value') === tabId || tab.textContent?.toLowerCase().includes(tabId.replace('-', ' '))
-        ) as HTMLElement;
-        
-        if (!tabButton) {
-          console.warn(`Tab button for ${tabId} not found, skipping`);
-          continue;
-        }
-        
-        // Activate this tab
-        tabButton.click();
-        console.log(`Clicked tab: ${tabId}`);
-        
-        // Wait longer for tab transition to complete
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Find the now visible tab panel with more robust selector
-        const tabPanel = document.querySelector(
-          `[role="tabpanel"][data-state="active"], [data-radix-tabs-panel][data-state="active"]`
-        );
-        
-        if (!tabPanel) {
-          console.warn(`Tab panel for ${tabId} not found after click, skipping`);
-          continue;
-        }
-        
-        console.log(`Found tab panel for ${tabId}, preparing to capture`);
-        
-        // Add the tab name as a section heading
-        pdf.setFontSize(16);
-        const tabName = tabButton.textContent || (tabId === "by-color" ? "By Color" : "By Accessibility");
-        pdf.text(tabName, 14, currentY);
-        currentY += 10;
-        
-        try {
-          // Get all child elements that are cards or content sections
-          const contentSections = tabPanel.querySelectorAll('.card, [class*="grid"] > div');
+          if (currentY + imgHeight > height - 10) {
+            pdf.addPage();
+            currentY = 20;
+          }
           
-          if (contentSections.length > 0) {
-            console.log(`Found ${contentSections.length} content sections to capture individually`);
+          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 15, currentY, imgWidth, imgHeight);
+          currentY += imgHeight + 10;
+        } else {
+          // Process each section separately
+          for (let i = 0; i < sections.length; i++) {
+            const section = sections[i] as HTMLElement;
             
-            // Capture each section separately for better results
-            for (let i = 0; i < contentSections.length; i++) {
-              const section = contentSections[i] as HTMLElement;
-              
-              // Skip empty or tiny sections
-              if (section.offsetHeight < 20 || section.offsetWidth < 20) {
-                continue;
-              }
-              
-              // Temporarily adjust the section for better capture
-              const originalStyle = section.style.cssText;
-              section.style.maxHeight = "none";
-              section.style.overflow = "visible";
-              
-              // Capture this section
-              const canvas = await html2canvas(section, {
-                scale: 1.5,
-                logging: false,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: "#ffffff"
-              });
-              
-              // Calculate image dimensions
-              const imgWidth = width - 20;
-              const imgHeight = (canvas.height * imgWidth) / canvas.width;
-              
-              // Add a new page if this section won't fit
-              if (currentY + imgHeight > height - 10) {
-                pdf.addPage();
-                currentY = 20;
-              }
-              
-              // Add the image to the PDF
-              pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, currentY, imgWidth, imgHeight);
-              
-              // Restore the section's original style
-              section.style.cssText = originalStyle;
-              
-              // Update Y position for next section
-              currentY += imgHeight + 10;
-            }
-          } else {
-            // Fallback to capturing the entire panel if no sections found
-            const canvas = await html2canvas(tabPanel as HTMLElement, {
-              scale: 1.5,
-              logging: false,
-              useCORS: true,
-              allowTaint: true,
-              backgroundColor: "#ffffff"
+            if (section.offsetHeight < 20 || section.offsetWidth < 20) continue;
+            
+            // Ensure headers are visible and properly styled
+            const headers = section.querySelectorAll('h3');
+            headers.forEach(header => {
+              header.style.margin = '10px 0';
+              header.style.fontSize = '16px';
+              header.style.fontWeight = 'bold';
+              header.style.color = '#000000';
             });
             
-            // Calculate image dimensions
-            const imgWidth = width - 20;
+            // Canvas capture with improved settings
+            const canvas = await html2canvas(section, {
+              scale: 1.5,
+              useCORS: true,
+              allowTaint: true,
+              backgroundColor: "#ffffff",
+              logging: false,
+              onclone: (clonedDoc, element) => {
+                // Re-apply colors and styles in the clone
+                const colorElements = element.querySelectorAll('[data-bg-color], [data-text-color]');
+                colorElements.forEach(el => {
+                  const colorEl = el as HTMLElement;
+                  if (colorEl.hasAttribute('data-bg-color')) {
+                    colorEl.style.backgroundColor = colorEl.getAttribute('data-bg-color') || '';
+                  }
+                  if (colorEl.hasAttribute('data-text-color')) {
+                    colorEl.style.color = colorEl.getAttribute('data-text-color') || '';
+                  }
+                });
+              }
+            });
+            
+            const imgWidth = width - 30;
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
             
             // Add a new page if needed
@@ -194,36 +156,22 @@ const PdfReport = () => {
               currentY = 20;
             }
             
-            // Add the image to the PDF
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, currentY, imgWidth, imgHeight);
-            
-            // Update Y position
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 15, currentY, imgWidth, imgHeight);
             currentY += imgHeight + 15;
           }
-          
-          // Add a new page for the next tab if needed
-          if (tabId !== tabIds[tabIds.length - 1] && currentY > height - 30) {
-            pdf.addPage();
-            currentY = 20;
-          }
-        } catch (captureError) {
-          console.error(`Error capturing ${tabId} tab:`, captureError);
-          pdf.setTextColor(255, 0, 0);
-          pdf.text(`Error capturing ${tabName} tab content`, 14, currentY);
-          pdf.setTextColor(0, 0, 0);
-          currentY += 10;
         }
-      }
-      
-      // Restore the originally active tab if found
-      if (originalActiveTab) {
-        (originalActiveTab as HTMLElement).click();
-        console.log("Restored original active tab");
+      } catch (error) {
+        console.error("Error capturing content:", error);
+        throw error;
+      } finally {
+        // Clean up - remove the clone from the document
+        if (clone.parentNode) {
+          clone.parentNode.removeChild(clone);
+        }
       }
       
       // Save the PDF
       pdf.save('contrast-accessibility-report.pdf');
-      console.log("PDF saved successfully");
       
       toast({
         title: "PDF Generated Successfully",
@@ -236,6 +184,8 @@ const PdfReport = () => {
         description: "There was a problem creating the PDF. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -244,10 +194,11 @@ const PdfReport = () => {
       variant="outline" 
       size="sm" 
       onClick={downloadPdfReport}
+      disabled={isGenerating}
       className="flex items-center gap-2"
     >
       <FileDown className="h-4 w-4" />
-      Download PDF Report
+      {isGenerating ? "Generating..." : "Download PDF Report"}
     </Button>
   );
 };
