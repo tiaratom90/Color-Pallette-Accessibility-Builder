@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
@@ -10,45 +9,6 @@ import BlackWhiteToggle from '@/components/form/BlackWhiteToggle';
 import { calculateColorContrast, SummaryType } from '@/utils/contrastUtils';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useSearchParams } from 'react-router-dom';
-
-// Add a style tag for PDF optimization
-const pdfOptimizationStyles = `
-@media print {
-  /* Hide elements not needed in print */
-  button {
-    display: none !important;
-  }
-  
-  /* Ensure backgrounds and colors are printed */
-  * {
-    -webkit-print-color-adjust: exact !important;
-    color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
-  /* Force page breaks where needed */
-  .page-break-after {
-    page-break-after: always;
-  }
-
-  /* Ensure containers have proper dimensions */
-  .card, .grid {
-    break-inside: avoid;
-    margin-bottom: 20px;
-  }
-
-  /* Force visibility of text */
-  .text-gray-600, .text-gray-500, .text-gray-400, 
-  .dark\\:text-gray-300, .dark\\:text-gray-400 {
-    color: #333333 !important;
-  }
-
-  /* Better text legibility */
-  * {
-    font-family: Arial, sans-serif;
-  }
-}
-`;
 
 const Index = () => {
   const [colors, setColors] = useState<string[]>(Array(6).fill(''));
@@ -80,19 +40,6 @@ const Index = () => {
         console.error('Error parsing colors from URL:', error);
       }
     }
-  }, []);
-
-  // Add the PDF optimization styles
-  useEffect(() => {
-    // Add the style element
-    const styleEl = document.createElement('style');
-    styleEl.textContent = pdfOptimizationStyles;
-    document.head.appendChild(styleEl);
-    
-    // Clean up
-    return () => {
-      document.head.removeChild(styleEl);
-    };
   }, []);
 
   const handleColorChange = (index: number, value: string) => {
