@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
@@ -115,18 +116,37 @@ const Index = () => {
             margin-top: 2rem;
             page-break-before: always;
           }
-          .is-printing * {
+          
+          /* Preserve actual colors in color swatches while printing */
+          .is-printing [style*="background-color:"] {
+            background-color: inherit !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .is-printing [style*="color:"] {
+            color: inherit !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          /* Only force black/white on elements without inline styles */
+          .is-printing *:not([style*="background-color:"]):not([style*="color:"]) {
             color: black !important;
             background-color: white !important;
           }
+          
           .is-printing .card,
           .is-printing [class*="border"] {
             border: 1px solid #ddd !important;
           }
+          
           .is-printing h2 {
             font-size: 1.5rem !important;
             margin-bottom: 1rem !important;
           }
+          
+          /* Force these specific elements to white regardless */
           .is-printing .dark\\:bg-gray-800,
           .is-printing .dark\\:bg-gray-900,
           .is-printing .bg-gray-50 {
