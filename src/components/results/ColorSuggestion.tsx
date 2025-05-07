@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Lightbulb, RefreshCw } from "lucide-react";
@@ -12,9 +12,16 @@ interface ColorSuggestionProps {
   color2: string;
   result: ColorResult;
   onApplySuggestion: (newColor1: string, newColor2: string) => void;
+  targetLevel?: "AAA" | "AA" | "AA Large";
 }
 
-const ColorSuggestion = ({ color1, color2, result, onApplySuggestion }: ColorSuggestionProps) => {
+const ColorSuggestion = ({ 
+  color1, 
+  color2, 
+  result, 
+  onApplySuggestion, 
+  targetLevel 
+}: ColorSuggestionProps) => {
   const { toast } = useToast();
   const [adjustBackground, setAdjustBackground] = useState(false);
   const [suggestion, setSuggestion] = useState<{
@@ -23,9 +30,22 @@ const ColorSuggestion = ({ color1, color2, result, onApplySuggestion }: ColorSug
     newRatio: string;
     targetLevel: string;
   } | null>(null);
+  
+  // Auto-generate suggestion when mounted or targetLevel changes
+  useEffect(() => {
+    if (targetLevel) {
+      generateSuggestion(targetLevel);
+    }
+  }, [targetLevel]);
 
-  const generateSuggestion = () => {
-    const newSuggestion = suggestAccessibleColors(color1, color2, adjustBackground);
+  const generateSuggestion = (specificTarget?: string) => {
+    const newSuggestion = suggestAccessibleColors(
+      color1, 
+      color2, 
+      adjustBackground, 
+      specificTarget as "AAA" | "AA" | "AA Large" | undefined
+    );
+    
     setSuggestion(newSuggestion);
     
     toast({
@@ -50,41 +70,47 @@ const ColorSuggestion = ({ color1, color2, result, onApplySuggestion }: ColorSug
     }
   };
 
-  // Don't show suggestion UI if already AAA compliant
-  if (result.level.aaa) {
+  const currentLevel = result.level.aaa 
+    ? "AAA" 
+    : result.level.aa 
+      ? "AA" 
+      : result.level.aaLarge 
+        ? "AA Large" 
+        : "Not accessible";
+
+  // Don't render if result is already AAA compliant and no suggestion is needed
+  if (result.level.aaa && !suggestion) {
     return null;
   }
 
-  const currentLevel = result.level.aa 
-    ? "AA" 
-    : result.level.aaLarge 
-      ? "AA Large" 
-      : "Not accessible";
-
   return (
-    <div className="mt-2 space-y-2 bg-gray-50 dark:bg-gray-900 p-2 rounded">
-      <div className="flex justify-between items-center">
-        <div className="text-xs font-medium">
-          Current: <span className="text-gray-600 dark:text-gray-400">{currentLevel}</span>
+    <div className="space-y-2">
+      {!targetLevel && (
+        <div className="flex justify-between items-center mb-2">
+          <div className="text-xs font-medium">
+            Current: <span className="text-gray-600 dark:text-gray-400">{currentLevel}</span>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-7 text-xs"
+            onClick={toggleAdjustMode}
+          >
+            Adjust {adjustBackground ? "Background" : "Text"}
+          </Button>
         </div>
+      )}
+      
+      {!suggestion && (
         <Button 
           variant="outline" 
           size="sm" 
-          className="h-7 text-xs"
-          onClick={toggleAdjustMode}
+          className="w-full flex items-center gap-2 bg-white dark:bg-gray-800"
+          onClick={() => generateSuggestion()}
         >
-          Adjust {adjustBackground ? "Background" : "Text"}
+          <Lightbulb className="h-3 w-3" /> Suggest Accessible Color
         </Button>
-      </div>
-      
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="w-full flex items-center gap-2 bg-white dark:bg-gray-800"
-        onClick={generateSuggestion}
-      >
-        <Lightbulb className="h-3 w-3" /> Suggest Accessible Color
-      </Button>
+      )}
 
       {suggestion && (
         <div className="space-y-2">
@@ -107,7 +133,7 @@ const ColorSuggestion = ({ color1, color2, result, onApplySuggestion }: ColorSug
           
           <div className="flex items-center justify-between">
             <div className="text-xs">
-              New ratio: <span className="font-medium">{suggestion.newRatio}:1</span>
+              <span className="font-medium">{suggestion.newRatio}:1</span>
               <span className={cn(
                 "ml-2 px-1.5 py-0.5 rounded text-[0.65rem] font-semibold",
                 suggestion.targetLevel === "AAA" 
@@ -120,13 +146,23 @@ const ColorSuggestion = ({ color1, color2, result, onApplySuggestion }: ColorSug
               </span>
             </div>
             
-            <Button
-              size="sm"
-              className="h-7 text-xs"
-              onClick={applySuggestion}
-            >
-              Apply
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={() => generateSuggestion()}
+              >
+                <RefreshCw className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                className="h-7 text-xs"
+                onClick={applySuggestion}
+              >
+                Apply
+              </Button>
+            </div>
           </div>
         </div>
       )}
