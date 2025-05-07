@@ -1,9 +1,10 @@
 
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react"; // Changed from Screenshot to Download which is available in lucide-react
+import { Download } from "lucide-react"; 
 import html2canvas from "html2canvas";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { jsPDF } from "jspdf";
 
 const PdfReport = () => {
   const { toast } = useToast();
@@ -13,8 +14,8 @@ const PdfReport = () => {
     try {
       setIsGenerating(true);
       toast({
-        title: "Generating Screenshot",
-        description: "Please wait while we prepare your image...",
+        title: "Generating Report",
+        description: "Please wait while we prepare your report...",
       });
 
       // Find the active tab panel with results
@@ -23,21 +24,46 @@ const PdfReport = () => {
         throw new Error("No content found to capture");
       }
 
-      // Create a clone of the results container to modify
+      // Create a deep clone of the results container to modify
       const clone = resultsContainer.cloneNode(true) as HTMLElement;
       
       // Hide all copy buttons in the clone
       const copyButtons = clone.querySelectorAll('button:has(.lucide-copy)');
       copyButtons.forEach(button => {
-        // Fix: Cast each button element to HTMLElement before accessing style property
         (button as HTMLElement).style.display = 'none';
       });
       
-      // Add the clone to the document temporarily but make it invisible
+      // Apply styling to ensure proper rendering
       clone.style.position = 'absolute';
       clone.style.left = '-9999px';
       clone.style.width = `${resultsContainer.clientWidth}px`;
+      clone.style.backgroundColor = 'white';
+      clone.style.padding = '20px';
+      clone.style.borderRadius = '0';
+      clone.style.boxShadow = 'none';
+      clone.style.color = '#000';
+      
+      // Set a higher z-index to ensure it's on top
+      clone.style.zIndex = '-9999';
       document.body.appendChild(clone);
+      
+      // Ensure all color swatches render properly
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Create PDF document
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: 'a4',
+      });
+      
+      // Calculate PDF dimensions
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const aspectRatio = pdfWidth / clone.offsetWidth;
+      
+      // Set fonts to handle special characters
+      pdf.setFont("helvetica", "normal");
       
       // Take screenshot with html2canvas
       const canvas = await html2canvas(clone, {
@@ -46,13 +72,17 @@ const PdfReport = () => {
         allowTaint: true,
         backgroundColor: "#ffffff",
         logging: false,
-        removeContainer: false // Important to prevent flickering
+        removeContainer: false, // Important to prevent flickering
+        onclone: (clonedDoc) => {
+          // Additional styling for the cloned document if needed
+          const clonedElement = clonedDoc.body.querySelector('[role="tabpanel"]') as HTMLElement;
+          if (clonedElement) {
+            clonedElement.style.width = `${resultsContainer.clientWidth}px`;
+          }
+        }
       });
       
-      // Remove the clone
-      document.body.removeChild(clone);
-      
-      // Convert canvas to blob
+      // Option 1: Download as PNG image
       canvas.toBlob((blob) => {
         if (!blob) {
           throw new Error("Failed to create image");
@@ -67,18 +97,19 @@ const PdfReport = () => {
         
         // Clean up
         URL.revokeObjectURL(url);
+        document.body.removeChild(clone);
         
         toast({
-          title: "Screenshot Downloaded",
+          title: "Report Downloaded",
           description: "Your contrast results have been saved as an image.",
         });
-      }, "image/png", 0.9);
+      }, "image/png", 1.0);
       
     } catch (error) {
-      console.error("Error generating screenshot:", error);
+      console.error("Error generating report:", error);
       toast({
-        title: "Error generating screenshot",
-        description: "There was a problem creating the image. Please try again.",
+        title: "Error generating report",
+        description: "There was a problem creating the document. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -95,7 +126,7 @@ const PdfReport = () => {
       className="flex items-center gap-2"
     >
       <Download className="h-4 w-4" />
-      {isGenerating ? "Generating..." : "Download Screenshot"}
+      {isGenerating ? "Generating..." : "Download Report"}
     </Button>
   );
 };
