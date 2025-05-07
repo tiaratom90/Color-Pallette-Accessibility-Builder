@@ -19,6 +19,10 @@ const Index = () => {
   const [includeBW, setIncludeBW] = useState<boolean>(true);
   const [searchParams, setSearchParams] = useSearchParams();
   
+  // Add color history tracking for undo functionality
+  const [colorHistory, setColorHistory] = useState<string[][]>([]);
+  const [canUndo, setCanUndo] = useState<boolean>(false);
+  
   const { toast } = useToast();
 
   // Load colors from URL if available
@@ -56,6 +60,10 @@ const Index = () => {
   };
 
   const handleColorUpdate = (originalColor: string, newColor: string) => {
+    // Save current colors to history before updating
+    setColorHistory(prev => [...prev, [...colors]]);
+    setCanUndo(true);
+    
     // Find this color in the colors array and update it
     const colorIndex = colors.findIndex(color => color === originalColor);
     
@@ -77,6 +85,23 @@ const Index = () => {
       toast({
         title: "Color update notice",
         description: "This color isn't part of your palette and can't be updated.",
+      });
+    }
+  };
+
+  const undoColorChange = () => {
+    if (colorHistory.length > 0) {
+      const previousColors = colorHistory[colorHistory.length - 1];
+      setColors(previousColors);
+      checkColors(previousColors);
+      
+      // Remove the last item from history
+      setColorHistory(prev => prev.slice(0, -1));
+      setCanUndo(colorHistory.length > 1);
+      
+      toast({
+        title: "Change undone",
+        description: "Previous color palette has been restored.",
       });
     }
   };
@@ -113,6 +138,8 @@ const Index = () => {
     setResults({});
     setSummary(null);
     setIncludeBW(true);
+    setColorHistory([]);
+    setCanUndo(false);
     setSearchParams({});
     toast({
       title: "Form Reset",
@@ -165,7 +192,9 @@ const Index = () => {
               results={results} 
               colorNames={colorNames} 
               summary={summary} 
-              onColorUpdate={handleColorUpdate} 
+              onColorUpdate={handleColorUpdate}
+              canUndo={canUndo}
+              onUndo={undoColorChange} 
             />
           </div>
         </div>
