@@ -96,12 +96,14 @@ export const getAccessibilityLevelName = (ratio: number): string => {
  * @param color1 Background color
  * @param color2 Text color
  * @param adjustBackground Whether to adjust the background color
+ * @param specificTarget Optional target level to aim for
  * @returns Object containing suggested colors and new contrast ratio
  */
 export const suggestAccessibleColors = (
   color1: string,
   color2: string,
-  adjustBackground: boolean = false
+  adjustBackground: boolean = false,
+  specificTarget?: "AAA" | "AA" | "AA Large"
 ): { 
   suggestedColor1: string,
   suggestedColor2: string,
@@ -111,11 +113,18 @@ export const suggestAccessibleColors = (
   // Calculate current contrast ratio
   const currentRatio = parseFloat(contrast(hexToRgb(color1), hexToRgb(color2)));
   
-  // Determine target ratio for next accessibility level
-  const targetRatio = getTargetRatio(currentRatio);
+  // Determine target ratio based on specificTarget or next level
+  let targetRatio: number;
+  if (specificTarget) {
+    if (specificTarget === "AAA") targetRatio = 7;
+    else if (specificTarget === "AA") targetRatio = 4.5;
+    else targetRatio = 3; // AA Large
+  } else {
+    targetRatio = getTargetRatio(currentRatio);
+  }
   
   // Get target level name
-  const targetLevel = getAccessibilityLevelName(targetRatio);
+  const targetLevel = specificTarget || getAccessibilityLevelName(targetRatio);
   
   // If already at maximum level, return unchanged
   if (currentRatio >= 7) {

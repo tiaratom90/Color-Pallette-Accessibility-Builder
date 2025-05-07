@@ -42,7 +42,7 @@ const ColorSuggestion = ({
     const newSuggestion = suggestAccessibleColors(
       color1, 
       color2, 
-      adjustBackground, 
+      adjustBackground,
       specificTarget as "AAA" | "AA" | "AA Large" | undefined
     );
     
