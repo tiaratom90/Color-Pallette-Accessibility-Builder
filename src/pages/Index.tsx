@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import Results from '@/components/Results';
 import ColorInputList from '@/components/form/ColorInputList';
 import ActionButtons from '@/components/form/ActionButtons';
@@ -66,7 +67,7 @@ const Index = () => {
       return;
     }
 
-    const { results: contrastResults, passCounts } = calculateColorContrast(colors, includeBW);
+    const { results: contrastResults, passCounts } = calculateColorContrast(validColors, includeBW);
     
     setResults(contrastResults);
     setSummary(passCounts);
@@ -77,6 +78,29 @@ const Index = () => {
     toast({
       title: "Analysis Complete",
       description: "Color contrast analysis has been updated.",
+    });
+  };
+
+  const handleImport = (importedColors: string[], importedNames: string[]) => {
+    // If we have more than 6 colors, take only the first 6
+    const newColors = importedColors.slice(0, 6);
+    const newNames = importedNames.slice(0, 6);
+    
+    // Fill the remaining slots with empty strings if needed
+    while (newColors.length < 6) {
+      newColors.push('');
+      newNames.push('');
+    }
+    
+    setColors(newColors);
+    setColorNames(newNames);
+    
+    // Run analysis on the imported colors
+    checkColors(newColors);
+    
+    toast({
+      title: "Import Successful",
+      description: `Imported ${importedColors.length} colors from saved data.`,
     });
   };
 
@@ -126,7 +150,8 @@ const Index = () => {
               
               <ActionButtons 
                 onCheckContrast={() => checkColors()} 
-                onReset={resetForm} 
+                onReset={resetForm}
+                onImport={handleImport}
               />
               {summary && <ContrastSummary summary={summary} />}
             </Card>

@@ -1,10 +1,11 @@
+
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Eye, Palette } from "lucide-react";
 import { AccessibilityGroups, ColorResult } from "@/utils/contrastUtils";
 import ByColorTab from "./results/ByColorTab";
 import ByAccessibilityTab from "./results/ByAccessibilityTab";
-import PdfReport from "./results/PdfReport";
+import ExportOptions from "./results/ExportOptions";
 
 interface ResultsProps {
   results: Record<string, Record<string, ColorResult>>;
@@ -50,6 +51,7 @@ const Results = ({
       result: ColorResult;
     }>
   };
+  
   Object.entries(results).forEach(([color1, combinations]) => {
     Object.entries(combinations).forEach(([color2, result]) => {
       if (result.level.aaa) {
@@ -79,11 +81,12 @@ const Results = ({
       }
     });
   });
+  
   return <div>
       <div className="flex justify-between mb-4 items-center">
         <h2 className="text-xl font-medium dark:text-white">
         </h2>
-        <PdfReport />
+        <ExportOptions results={results} colorNames={colorNames} />
       </div>
     
       <Tabs defaultValue="by-color" className="w-full">
