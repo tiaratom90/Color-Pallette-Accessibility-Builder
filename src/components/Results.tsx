@@ -2,10 +2,9 @@
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Eye, Palette } from "lucide-react";
-import { AccessibilityGroups, ColorResult } from "@/utils/contrastUtils";
+import { ColorResult } from "@/utils/contrastUtils";
 import ByColorTab from "./results/ByColorTab";
 import ByAccessibilityTab from "./results/ByAccessibilityTab";
-import ExportOptions from "./results/ExportOptions";
 
 interface ResultsProps {
   results: Record<string, Record<string, ColorResult>>;
@@ -83,10 +82,9 @@ const Results = ({
   });
   
   return <div>
-      <div className="flex justify-between mb-4 items-center">
+      <div className="mb-4">
         <h2 className="text-xl font-medium dark:text-white">
         </h2>
-        <ExportOptions results={results} colorNames={colorNames} />
       </div>
     
       <Tabs defaultValue="by-color" className="w-full">

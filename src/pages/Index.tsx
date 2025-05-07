@@ -81,29 +81,6 @@ const Index = () => {
     });
   };
 
-  const handleImport = (importedColors: string[], importedNames: string[]) => {
-    // If we have more than 6 colors, take only the first 6
-    const newColors = importedColors.slice(0, 6);
-    const newNames = importedNames.slice(0, 6);
-    
-    // Fill the remaining slots with empty strings if needed
-    while (newColors.length < 6) {
-      newColors.push('');
-      newNames.push('');
-    }
-    
-    setColors(newColors);
-    setColorNames(newNames);
-    
-    // Run analysis on the imported colors
-    checkColors(newColors);
-    
-    toast({
-      title: "Import Successful",
-      description: `Imported ${importedColors.length} colors from saved data.`,
-    });
-  };
-
   const resetForm = () => {
     setColors(Array(6).fill(''));
     setColorNames(Array(6).fill(''));
@@ -151,7 +128,6 @@ const Index = () => {
               <ActionButtons 
                 onCheckContrast={() => checkColors()} 
                 onReset={resetForm}
-                onImport={handleImport}
               />
               {summary && <ContrastSummary summary={summary} />}
             </Card>
