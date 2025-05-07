@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -52,6 +53,32 @@ const Index = () => {
     const newNames = [...colorNames];
     newNames[index] = value;
     setColorNames(newNames);
+  };
+
+  const handleColorUpdate = (originalColor: string, newColor: string) => {
+    // Find this color in the colors array and update it
+    const colorIndex = colors.findIndex(color => color === originalColor);
+    
+    if (colorIndex !== -1) {
+      // Update the color in the array
+      const newColors = [...colors];
+      newColors[colorIndex] = newColor;
+      setColors(newColors);
+      
+      // Recalculate results with the new color
+      checkColors(newColors);
+      
+      toast({
+        title: "Color updated",
+        description: `${originalColor} has been updated to ${newColor} for better accessibility.`,
+      });
+    } else {
+      // This might be a black or white color that's not in the colors array
+      toast({
+        title: "Color update notice",
+        description: "This color isn't part of your palette and can't be updated.",
+      });
+    }
   };
 
   const checkColors = (colorsToCheck = colors) => {
@@ -134,7 +161,12 @@ const Index = () => {
 
           {/* Results Panel */}
           <div className="lg:col-span-2">
-            <Results results={results} colorNames={colorNames} summary={summary} />
+            <Results 
+              results={results} 
+              colorNames={colorNames} 
+              summary={summary} 
+              onColorUpdate={handleColorUpdate} 
+            />
           </div>
         </div>
       </div>

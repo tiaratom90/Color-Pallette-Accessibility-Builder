@@ -4,6 +4,7 @@ import { ColorResult } from "@/utils/contrastUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ColorSuggestion from "./ColorSuggestion";
 
 interface SwatchWithLabelProps {
   color1: string;
@@ -11,9 +12,17 @@ interface SwatchWithLabelProps {
   result: ColorResult;
   color1Name?: string;
   color2Name?: string;
+  onColorUpdate?: (originalColor: string, newColor: string) => void;
 }
 
-const SwatchWithLabel = ({ color1, color2, result, color1Name, color2Name }: SwatchWithLabelProps) => {
+const SwatchWithLabel = ({ 
+  color1, 
+  color2, 
+  result, 
+  color1Name, 
+  color2Name, 
+  onColorUpdate 
+}: SwatchWithLabelProps) => {
   const { toast } = useToast();
 
   const copyToClipboard = (text: string, label: string) => {
@@ -27,6 +36,20 @@ const SwatchWithLabel = ({ color1, color2, result, color1Name, color2Name }: Swa
   // Format the color display as "Color Name (HEX)"
   const formatColorDisplay = (name: string, hex: string) => {
     return `${name} (${hex})`;
+  };
+
+  const handleApplySuggestion = (newColor1: string, newColor2: string) => {
+    if (onColorUpdate) {
+      // If background color changed
+      if (newColor1 !== color1) {
+        onColorUpdate(color1, newColor1);
+      }
+      
+      // If text color changed
+      if (newColor2 !== color2) {
+        onColorUpdate(color2, newColor2);
+      }
+    }
   };
 
   return (
@@ -107,6 +130,16 @@ const SwatchWithLabel = ({ color1, color2, result, color1Name, color2Name }: Swa
               AA Large
             </div>
           </div>
+          
+          {/* Color suggestion UI */}
+          {onColorUpdate && (
+            <ColorSuggestion 
+              color1={color1} 
+              color2={color2} 
+              result={result} 
+              onApplySuggestion={handleApplySuggestion} 
+            />
+          )}
         </div>
       </div>
     </div>

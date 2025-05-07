@@ -5,9 +5,10 @@ import SwatchWithLabel from "./SwatchWithLabel";
 interface ByAccessibilityTabProps {
   accessibilityGroups: AccessibilityGroups;
   colorNames: string[];
+  onColorUpdate?: (originalColor: string, newColor: string) => void;
 }
 
-const ByAccessibilityTab = ({ accessibilityGroups, colorNames }: ByAccessibilityTabProps) => {
+const ByAccessibilityTab = ({ accessibilityGroups, colorNames, onColorUpdate }: ByAccessibilityTabProps) => {
   // Find color name by hex color
   const getColorName = (hexColor: string): string => {
     // Handle black and white separately
@@ -68,6 +69,7 @@ const ByAccessibilityTab = ({ accessibilityGroups, colorNames }: ByAccessibility
                   result={result}
                   color1Name={getColorName(color1)}
                   color2Name={getColorName(color2)}
+                  onColorUpdate={onColorUpdate}
                 />
               </div>
             ))}
@@ -89,6 +91,7 @@ const ByAccessibilityTab = ({ accessibilityGroups, colorNames }: ByAccessibility
                   result={result}
                   color1Name={getColorName(color1)}
                   color2Name={getColorName(color2)}
+                  onColorUpdate={onColorUpdate}
                 />
               </div>
             ))}
@@ -110,6 +113,7 @@ const ByAccessibilityTab = ({ accessibilityGroups, colorNames }: ByAccessibility
                   result={result}
                   color1Name={getColorName(color1)}
                   color2Name={getColorName(color2)}
+                  onColorUpdate={onColorUpdate}
                 />
               </div>
             ))}
@@ -131,6 +135,7 @@ const ByAccessibilityTab = ({ accessibilityGroups, colorNames }: ByAccessibility
                   result={result}
                   color1Name={getColorName(color1)}
                   color2Name={getColorName(color2)}
+                  onColorUpdate={onColorUpdate}
                 />
               </div>
             ))}

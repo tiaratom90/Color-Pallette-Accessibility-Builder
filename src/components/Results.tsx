@@ -11,12 +11,14 @@ interface ResultsProps {
   results: Record<string, Record<string, ColorResult>>;
   colorNames: string[];
   summary?: { aaa: number; aa: number; aaLarge: number; total: number } | null;
+  onColorUpdate?: (originalColor: string, newColor: string) => void;
 }
 
 const Results = ({
   results,
   colorNames,
-  summary
+  summary,
+  onColorUpdate
 }: ResultsProps) => {
   if (Object.keys(results).length === 0) {
     return <Card className="p-6 dark:bg-gray-800">
@@ -87,6 +89,11 @@ const Results = ({
   return <div>
       <div className="mb-4 flex justify-between items-center">
         <h2 className="text-xl font-medium dark:text-white">
+          {onColorUpdate && (
+            <span className="text-sm text-blue-600 dark:text-blue-400 font-normal">
+              With accessibility suggestions
+            </span>
+          )}
         </h2>
         {summary && <TextReport results={results} colorNames={colorNames} summary={summary} />}
       </div>
@@ -106,11 +113,19 @@ const Results = ({
         </div>
 
         <TabsContent value="by-color">
-          <ByColorTab results={results} colorNames={colorNames} />
+          <ByColorTab 
+            results={results} 
+            colorNames={colorNames} 
+            onColorUpdate={onColorUpdate} 
+          />
         </TabsContent>
 
         <TabsContent value="by-accessibility">
-          <ByAccessibilityTab accessibilityGroups={accessibilityGroups} colorNames={colorNames} />
+          <ByAccessibilityTab 
+            accessibilityGroups={accessibilityGroups} 
+            colorNames={colorNames} 
+            onColorUpdate={onColorUpdate} 
+          />
         </TabsContent>
       </Tabs>
     </div>;

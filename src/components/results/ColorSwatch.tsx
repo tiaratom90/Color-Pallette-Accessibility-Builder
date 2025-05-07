@@ -4,15 +4,17 @@ import { ColorResult } from "@/utils/contrastUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ColorSuggestion from "./ColorSuggestion";
 
 interface ColorSwatchProps {
   color1: string;
   color2: string;
   result: ColorResult;
   colorName?: string;
+  onColorUpdate?: (originalColor: string, newColor: string) => void;
 }
 
-const ColorSwatch = ({ color1, color2, result, colorName }: ColorSwatchProps) => {
+const ColorSwatch = ({ color1, color2, result, colorName, onColorUpdate }: ColorSwatchProps) => {
   const { toast } = useToast();
 
   const copyToClipboard = (text: string, label: string) => {
@@ -21,6 +23,20 @@ const ColorSwatch = ({ color1, color2, result, colorName }: ColorSwatchProps) =>
       title: "Copied to clipboard",
       description: `${label} has been copied.`,
     });
+  };
+
+  const handleApplySuggestion = (newColor1: string, newColor2: string) => {
+    if (onColorUpdate) {
+      // If background color changed
+      if (newColor1 !== color1) {
+        onColorUpdate(color1, newColor1);
+      }
+      
+      // If text color changed
+      if (newColor2 !== color2) {
+        onColorUpdate(color2, newColor2);
+      }
+    }
   };
 
   return (
@@ -80,6 +96,16 @@ const ColorSwatch = ({ color1, color2, result, colorName }: ColorSwatchProps) =>
               AA Large
             </div>
           </div>
+          
+          {/* Color suggestion UI */}
+          {onColorUpdate && (
+            <ColorSuggestion 
+              color1={color1} 
+              color2={color2} 
+              result={result} 
+              onApplySuggestion={handleApplySuggestion} 
+            />
+          )}
         </div>
       </div>
     </div>
