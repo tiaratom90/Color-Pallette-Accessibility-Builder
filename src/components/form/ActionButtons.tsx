@@ -82,7 +82,7 @@ const ActionButtons = ({ onCheckContrast, onReset, onImport }: ActionButtonsProp
             className="w-full text-sm"
           >
             <Upload className="h-4 w-4 mr-2" />
-            {isImporting ? "Importing..." : "Import Saved Results"}
+            {isImporting ? "Importing..." : "Import Saved Results (JSON)"}
           </Button>
         </div>
       )}

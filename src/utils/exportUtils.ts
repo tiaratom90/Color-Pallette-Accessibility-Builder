@@ -1,6 +1,5 @@
 
 import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
 import { ColorResult } from "./contrastUtils";
 
 // Format data for export to JSON
@@ -60,51 +59,73 @@ export const exportAsJSON = (
   return true;
 };
 
-// Export the current view as a PNG image
+// Enhanced PNG export with custom renderer
 export const exportAsPNG = async (
-  activeTabPanel: Element,
-  options: { scale?: number; quality?: number } = {}
+  activeTabPanel: Element
 ): Promise<boolean> => {
-  // Create a deep clone of the results container to modify
-  const clone = activeTabPanel.cloneNode(true) as HTMLElement;
+  // Get the current tab type (by-color or by-accessibility)
+  const tabType = activeTabPanel.getAttribute('value') || 'by-color';
   
-  // Hide all copy buttons in the clone
-  const copyButtons = clone.querySelectorAll('button:has(.lucide-copy)');
-  copyButtons.forEach(button => {
-    (button as HTMLElement).style.display = 'none';
-  });
-  
-  // Apply styling to ensure proper rendering
-  clone.style.position = 'absolute';
-  clone.style.left = '-9999px';
-  clone.style.width = `${activeTabPanel.clientWidth}px`;
-  clone.style.backgroundColor = 'white';
-  clone.style.padding = '20px';
-  clone.style.borderRadius = '0';
-  clone.style.boxShadow = 'none';
-  clone.style.color = '#000';
-  
-  // Set a lower z-index to ensure it doesn't overlap other content
-  clone.style.zIndex = '-9999';
-  document.body.appendChild(clone);
-  
-  // Ensure all color swatches render properly
-  await new Promise(resolve => setTimeout(resolve, 200));
+  // Create a container for our custom rendering
+  const exportContainer = document.createElement('div');
+  exportContainer.style.position = 'fixed';
+  exportContainer.style.left = '-9999px';
+  exportContainer.style.top = '0';
+  exportContainer.style.width = '1200px'; // Fixed width for consistent output
+  exportContainer.style.backgroundColor = 'white';
+  exportContainer.style.padding = '40px';
+  exportContainer.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+  document.body.appendChild(exportContainer);
   
   try {
-    // Take screenshot with html2canvas
-    const canvas = await html2canvas(clone, {
-      scale: options.scale || 2, // Higher quality
+    // Clone the content but customize it for export
+    const clone = activeTabPanel.cloneNode(true) as HTMLElement;
+    
+    // Remove interactive elements and UI controls
+    const elementsToRemove = [
+      'button:has(.lucide-copy)', // Copy buttons
+      '.dropdown-menu', // Dropdown menus
+      '[role="tablist"]', // Tab lists
+    ];
+    
+    elementsToRemove.forEach(selector => {
+      clone.querySelectorAll(selector).forEach(el => {
+        if (el.parentNode) {
+          el.parentNode.removeChild(el);
+        }
+      });
+    });
+    
+    // Add title
+    const title = document.createElement('h1');
+    title.textContent = `Contrast Results - ${new Date().toLocaleDateString()}`;
+    title.style.fontSize = '28px';
+    title.style.marginBottom = '24px';
+    title.style.fontWeight = 'bold';
+    
+    exportContainer.appendChild(title);
+    exportContainer.appendChild(clone);
+    
+    // Ensure all color swatches render properly
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Enhance visuals for export
+    const swatches = exportContainer.querySelectorAll('.relative.group');
+    swatches.forEach(swatch => {
+      const swatchEl = swatch as HTMLElement;
+      swatchEl.style.marginBottom = '10px';
+      swatchEl.style.pageBreakInside = 'avoid';
+    });
+    
+    // Take screenshot with enhanced settings
+    const canvas = await html2canvas(exportContainer, {
+      scale: 2, // Higher quality
       useCORS: true,
       allowTaint: true,
       backgroundColor: "#ffffff",
       logging: false,
-      onclone: (clonedDoc) => {
-        const clonedElement = clonedDoc.body.querySelector('[role="tabpanel"]') as HTMLElement;
-        if (clonedElement) {
-          clonedElement.style.width = `${activeTabPanel.clientWidth}px`;
-        }
-      }
+      width: 1200,
+      height: exportContainer.offsetHeight,
     });
     
     // Convert to PNG and download
@@ -120,19 +141,35 @@ export const exportAsPNG = async (
       link.click();
       
       URL.revokeObjectURL(url);
-    }, "image/png", options.quality || 1.0);
+    }, "image/png", 1.0);
     
     return true;
+  } catch (error) {
+    console.error("Error in PNG export:", error);
+    throw error;
   } finally {
-    document.body.removeChild(clone);
+    document.body.removeChild(exportContainer);
   }
 };
 
-// Create a function to generate SVG from the contrast results
+// Create a function to generate improved SVG from the contrast results
 export const exportAsSVG = (
   results: Record<string, Record<string, ColorResult>>,
   colorNames: string[]
 ): boolean => {
+  // Get proper color names, avoid overlapping labels
+  const getProperColorName = (color: string, index: number): string => {
+    if (color === '#FFFFFF') return 'White';
+    if (color === '#000000') return 'Black';
+    
+    const colorIndex = Object.keys(results).indexOf(color);
+    if (colorIndex !== -1 && colorNames[colorIndex] && colorNames[colorIndex].trim() !== '') {
+      return colorNames[colorIndex];
+    }
+    
+    return `Color ${index + 1}`;
+  };
+  
   // Start SVG document
   let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="${Object.keys(results).length * 200 + 100}" viewBox="0 0 800 ${Object.keys(results).length * 200 + 100}">
   <style>
@@ -184,11 +221,13 @@ export const exportAsSVG = (
   
   // Process each color
   Object.entries(results).forEach(([color1, combinations], colorIndex) => {
+    const colorName = getProperColorName(color1, colorIndex);
+    
     // Add color heading
     svgContent += `
     <g transform="translate(20, ${yOffset - 40})">
       <circle cx="10" cy="10" r="10" fill="${color1}" />
-      <text x="30" y="15" class="color-name">${colorNames[colorIndex] || `Color ${colorIndex + 1}`}</text>
+      <text x="30" y="15" class="color-name">${colorName}</text>
       <text x="30" y="35" class="color-hex">${color1}</text>
     </g>`;
     
@@ -196,15 +235,9 @@ export const exportAsSVG = (
     
     // Process combinations for this color
     Object.entries(combinations).forEach(([color2, result], comboIndex) => {
-      // Find color name for color2
-      let color2Name = "White";
-      if (color2 === '#000000') color2Name = "Black";
-      else {
-        const color2Index = Object.keys(results).findIndex(c => c === color2);
-        color2Name = color2Index !== -1 && colorNames[color2Index] 
-          ? colorNames[color2Index] 
-          : `Color ${color2Index + 1}`;
-      }
+      // Find color name for color2 - fixed to avoid overlapping labels
+      const color2Index = Object.keys(results).indexOf(color2);
+      const color2Name = getProperColorName(color2, color2Index);
       
       // Add the swatch to SVG
       svgContent += createSwatch(color1, color2, result, xOffset, yOffset, color2Name);
