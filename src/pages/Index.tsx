@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -135,7 +134,7 @@ const Index = () => {
 
           {/* Results Panel */}
           <div className="lg:col-span-2">
-            <Results results={results} colorNames={colorNames} />
+            <Results results={results} colorNames={colorNames} summary={summary} />
           </div>
         </div>
       </div>

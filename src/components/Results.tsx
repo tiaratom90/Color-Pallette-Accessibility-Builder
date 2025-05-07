@@ -5,15 +5,18 @@ import { Eye, Palette } from "lucide-react";
 import { ColorResult } from "@/utils/contrastUtils";
 import ByColorTab from "./results/ByColorTab";
 import ByAccessibilityTab from "./results/ByAccessibilityTab";
+import TextReport from "./results/TextReport";
 
 interface ResultsProps {
   results: Record<string, Record<string, ColorResult>>;
   colorNames: string[];
+  summary?: { aaa: number; aa: number; aaLarge: number; total: number } | null;
 }
 
 const Results = ({
   results,
-  colorNames
+  colorNames,
+  summary
 }: ResultsProps) => {
   if (Object.keys(results).length === 0) {
     return <Card className="p-6 dark:bg-gray-800">
@@ -82,9 +85,10 @@ const Results = ({
   });
   
   return <div>
-      <div className="mb-4">
+      <div className="mb-4 flex justify-between items-center">
         <h2 className="text-xl font-medium dark:text-white">
         </h2>
+        {summary && <TextReport results={results} colorNames={colorNames} summary={summary} />}
       </div>
     
       <Tabs defaultValue="by-color" className="w-full">
