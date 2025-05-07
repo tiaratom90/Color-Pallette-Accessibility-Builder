@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -7,16 +6,19 @@ import { ColorResult } from "@/utils/contrastUtils";
 import ByColorTab from "./results/ByColorTab";
 import ByAccessibilityTab from "./results/ByAccessibilityTab";
 import TextReport from "./results/TextReport";
-
 interface ResultsProps {
   results: Record<string, Record<string, ColorResult>>;
   colorNames: string[];
-  summary?: { aaa: number; aa: number; aaLarge: number; total: number } | null;
+  summary?: {
+    aaa: number;
+    aa: number;
+    aaLarge: number;
+    total: number;
+  } | null;
   onColorUpdate?: (originalColor: string, newColor: string) => void;
   canUndo?: boolean;
   onUndo?: () => void;
 }
-
 const Results = ({
   results,
   colorNames,
@@ -60,7 +62,6 @@ const Results = ({
       result: ColorResult;
     }>
   };
-  
   Object.entries(results).forEach(([color1, combinations]) => {
     Object.entries(combinations).forEach(([color2, result]) => {
       if (result.level.aaa) {
@@ -90,30 +91,18 @@ const Results = ({
       }
     });
   });
-  
   return <div>
       <div className="mb-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <h2 className="text-xl font-medium dark:text-white">
-            {onColorUpdate && (
-              <span className="text-sm text-blue-600 dark:text-blue-400 font-normal">
-                With accessibility suggestions
-              </span>
-            )}
+            {onColorUpdate}
           </h2>
           
           {/* Undo button */}
-          {canUndo && onUndo && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onUndo} 
-              className="h-8 gap-1"
-            >
+          {canUndo && onUndo && <Button variant="outline" size="sm" onClick={onUndo} className="h-8 gap-1">
               <Undo className="h-3.5 w-3.5" />
               Undo
-            </Button>
-          )}
+            </Button>}
         </div>
         {summary && <TextReport results={results} colorNames={colorNames} summary={summary} />}
       </div>
@@ -133,22 +122,13 @@ const Results = ({
         </div>
 
         <TabsContent value="by-color">
-          <ByColorTab 
-            results={results} 
-            colorNames={colorNames} 
-            onColorUpdate={onColorUpdate} 
-          />
+          <ByColorTab results={results} colorNames={colorNames} onColorUpdate={onColorUpdate} />
         </TabsContent>
 
         <TabsContent value="by-accessibility">
-          <ByAccessibilityTab 
-            accessibilityGroups={accessibilityGroups} 
-            colorNames={colorNames} 
-            onColorUpdate={onColorUpdate} 
-          />
+          <ByAccessibilityTab accessibilityGroups={accessibilityGroups} colorNames={colorNames} onColorUpdate={onColorUpdate} />
         </TabsContent>
       </Tabs>
     </div>;
 };
-
 export default Results;
