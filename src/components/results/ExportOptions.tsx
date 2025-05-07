@@ -10,7 +10,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { exportAsJSON, exportAsPNG, exportAsSVG } from "@/utils/exportUtils";
 import { ColorResult } from "@/utils/contrastUtils";
-import { Save, FileText, FileImage, FilePdf } from "lucide-react";
+import { Save, FileText, FileImage, FileCode } from "lucide-react";
 
 interface ExportOptionsProps {
   results: Record<string, Record<string, ColorResult>>;
@@ -85,7 +85,7 @@ const ExportOptions = ({ results, colorNames }: ExportOptionsProps) => {
           Export as PNG
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleExport("svg")}>
-          <FilePdf className="h-4 w-4 mr-2" />
+          <FileCode className="h-4 w-4 mr-2" />
           Export as SVG
         </DropdownMenuItem>
       </DropdownMenuContent>
