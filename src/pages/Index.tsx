@@ -158,7 +158,7 @@ const Index = () => {
           <div className="lg:col-span-1">
             <Card className="p-6 dark:bg-gray-800">
               <h1 className="text-2xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                Color Scheme Accessibility Checker
+                Color Pallette Accessibility Builder
               </h1>
               <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm">
                 Check the contrast ratios between your colors to ensure your design meets accessibility standards.
