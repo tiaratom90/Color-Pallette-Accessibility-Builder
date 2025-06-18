@@ -6,9 +6,10 @@ import ColorSwatch from "./ColorSwatch";
 interface ByColorTabProps {
   results: Record<string, Record<string, ColorResult>>;
   colorNames: string[];
+  onColorUpdate?: (originalColor: string, newColor: string) => void;
 }
 
-const ByColorTab = ({ results, colorNames }: ByColorTabProps) => {
+const ByColorTab = ({ results, colorNames, onColorUpdate }: ByColorTabProps) => {
   // Find color name by hex color
   const getColorName = (hexColor: string): string => {
     // Special handling for black and white
@@ -50,6 +51,7 @@ const ByColorTab = ({ results, colorNames }: ByColorTabProps) => {
                   color2={color2} 
                   result={result} 
                   colorName={getColorName(color2)}
+                  onColorUpdate={onColorUpdate}
                 />
               </div>
             ))}
